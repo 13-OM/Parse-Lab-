@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operator Precedence · Parse Lab</title>
+<meta name="description" content="Operator grammar check, precedence table and animated parse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127793;</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="index.html"><span class="logo">&#8594;</span> Parse&nbsp;Lab</a>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="theory.html"><span class="nnum">1</span>Theory</a>
+      <a href="left-recursion.html"><span class="nnum">2</span>Left Recursion</a>
+      <a href="left-factoring.html"><span class="nnum">3</span>Left Factoring</a>
+      <a href="first-follow.html"><span class="nnum">4</span>FIRST &amp; FOLLOW</a>
+      <a href="ll1.html"><span class="nnum">5</span>LL(1)</a>
+      <a href="bottom-up.html"><span class="nnum">6</span>Bottom-Up</a>
+      <a href="operator.html"><span class="nnum">7</span>Operator Prec.</a>
+      <a href="questions.html"><span class="nnum">8</span>Questions</a>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn burger" data-act="menu" title="Menu">&#9776;</button>
+      <button class="icon-btn" data-act="proj" title="Projector mode (bigger text)">&#128253;</button>
+      <button class="icon-btn" data-act="theme" title="Dark / light">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero" style="padding:52px 0 26px">
+  <div class="wrap">
+    <span class="pill">Section 7</span>
+    <h1>Operator <span class="g">Precedence</span></h1>
+    <p>Check the operator-grammar conditions, convert a grammar that fails them, build the &#8918; &#8784; &#8919; table, and parse with an animated stack.</p>
+  </div>
+</section><section id="def">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">7.1</div>
+      <div><h2>Definitions</h2><p class="sub"></p></div>
+    </div>
+    <div class="def v-a"><h4>Operator grammar <span class="tag">definition</span></h4>
+<p>A grammar is an <b>operator grammar</b> if it satisfies <b>both</b> conditions:</p>
+<ol>
+<li>No production right-hand side is <span class="sym e">&epsilon;</span> (no &epsilon;-productions), and</li>
+<li>No production right-hand side has <b>two adjacent non-terminals</b>.</li>
+</ol>
+<p>So every pair of non-terminals in a right-hand side must be separated by at least one terminal &mdash;
+an <i>operator</i>. That is where the name comes from.</p>
+<div class="grid g2" style="margin-top:14px">
+  <div><div class="gbox in" style="font-size:.98rem"><div>E &rarr; E A E | id</div><div>A &rarr; &minus; | *</div></div>
+  <p class="muted" style="margin-top:8px"><b>Not</b> an operator grammar: <code>E A E</code> has E next to A, and A next to E.</p></div>
+  <div><div class="gbox out" style="font-size:.98rem"><div>E &rarr; E &minus; E | E * E | id</div></div>
+  <p class="muted" style="margin-top:8px"><b>Is</b> an operator grammar: every pair of non-terminals is separated by an operator.</p></div>
+</div></div><div class="def v-ok"><h4>Converting to an operator grammar <span class="tag">rule</span></h4>
+<p>When a non-terminal exists only to hold operators (every one of its productions is a single terminal),
+<b>substitute it back</b> into the right-hand sides where it appears. The adjacency disappears and the
+language is unchanged.</p>
+<p>For <code>E &rarr; E A E</code> with <code>A &rarr; &minus; | *</code>, replacing A by each of its
+alternatives gives <code>E &rarr; E &minus; E | E * E | id</code>.</p></div><div class="def v-nt"><h4>Precedence relations <span class="tag">definition</span></h4>
+<p>Between two terminals a and b exactly one relation may hold:</p>
+<div class="grid g3" style="margin:14px 0">
+  <div class="card" style="padding:16px;text-align:center"><div style="font-size:2rem;color:var(--warn)">&#8918;</div>
+  <b>a &#8918; b</b><p class="muted" style="margin:6px 0 0;font-size:.86rem">"a yields precedence to b" &mdash; b has higher precedence, so <b>shift</b>.</p></div>
+  <div class="card" style="padding:16px;text-align:center"><div style="font-size:2rem;color:var(--warn)">&#8784;</div>
+  <b>a &#8784; b</b><p class="muted" style="margin:6px 0 0;font-size:.86rem">"equal precedence" &mdash; they appear in the same right-hand side, like ( and ).</p></div>
+  <div class="card" style="padding:16px;text-align:center"><div style="font-size:2rem;color:var(--warn)">&#8919;</div>
+  <b>a &#8919; b</b><p class="muted" style="margin:6px 0 0;font-size:.86rem">"a takes precedence over b" &mdash; a is higher, so <b>reduce</b>.</p></div>
+</div>
+<p>These are <b>not</b> the same as &lt; and &gt;: it is perfectly possible for neither
+<code>a &#8918; b</code> nor <code>a &#8919; b</code> to hold, which signals a syntax error.</p></div><div class="def v-t"><h4>Parsing algorithm <span class="tag">algorithm</span></h4>
+<p>Scan with the stack top terminal <b>a</b> and the lookahead <b>b</b>:</p>
+<ul><li><code>a &#8918; b</code> or <code>a &#8784; b</code> &rarr; push the relation and <b>shift</b> b.</li>
+<li><code>a &#8919; b</code> &rarr; <b>reduce</b>: pop back to the most recent &#8918; and replace the popped
+handle by a non-terminal N.</li>
+<li>stack = <code>$</code> and lookahead = <code>$</code> &rarr; <b>accept</b>.</li>
+<li>no relation &rarr; <b>error</b>.</li></ul>
+<div class="note tip"><span class="ni">&#128161;</span><div>Operator-precedence parsers ignore which non-terminal
+is which &mdash; every reduction just produces "N". That is why they are small and fast, and why they are only
+used for expression grammars.</div></div></div>
+  </div>
+</section><section id="tool">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">7.2</div>
+      <div><h2>Interactive workbench</h2><p class="sub"></p></div>
+    </div>
+    
+<div class="card">
+  <h3>Step 1 &mdash; Check / convert to an operator grammar</h3>
+  <div class="split-wide">
+    <div>
+      <label class="lb">Grammar</label>
+      <textarea id="gin" spellcheck="false" style="min-height:130px">E -> EAE | id
+A -> - | *</textarea>
+      <div class="btn-row"><button class="btn" id="chk">Check &amp; convert</button></div>
+      <label class="lb" style="margin-top:18px">Saved examples</label>
+      <div class="chips">
+        <button class="chip" data-g="E -> EAE | id&#10;A -> - | *">E&rarr;EAE, A&rarr;&minus;|*</button>
+        <button class="chip" data-g="E -> E + E | E * E | ( E ) | id">E&rarr;E+E|E*E|(E)|id</button>
+        <button class="chip" data-g="S -> S A S | a&#10;A -> + | -">S&rarr;SAS|a</button>
+      </div>
+    </div>
+    <div><div id="msg"></div><div id="opOut"></div></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px">
+  <h3>Step 2 &mdash; Precedence table &amp; parse</h3>
+  <div class="split-wide">
+    <div>
+      <label class="lb">Precedence levels (lowest first, comma separated)</label>
+      <input type="text" id="lv1" value="+ , -" placeholder="+ , -">
+      <input type="text" id="lv2" value="* , /" style="margin-top:8px">
+      <input type="text" id="lv3" value="^" style="margin-top:8px" placeholder="(optional)">
+      <label class="lb" style="margin-top:16px">Operands / atoms</label>
+      <input type="text" id="atoms" value="id">
+      <label class="lb" style="margin-top:16px">Input string</label>
+      <input type="text" id="win" value="id + id * id">
+      <div class="btn-row"><button class="btn amber" id="run">Build table &amp; parse</button></div>
+    </div>
+    <div><div id="tblOut"></div></div>
+  </div>
+</div>
+<div id="simHost" style="margin-top:20px"></div>
+<div id="traceHost" style="margin-top:20px"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div><b>Parse Lab</b> &mdash; interactive compiler-design playground for syntax analysis.<br>
+    <span class="muted">Theory &rarr; animated tools &rarr; solved university questions. Works fully offline.</span></div>
+    <div><a href="index.html">Home</a> &nbsp;&middot;&nbsp; <a href="theory.html">Theory</a> &nbsp;&middot;&nbsp; <a href="questions.html">Questions</a></div>
+  </div>
+</footer>
+
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+(function(){
+  var $=UI.$;
+  var gin=$('#gin'), msg=$('#msg');
+  UI.$$('.chip[data-g]').forEach(function(c){
+    c.onclick=function(){UI.$$('.chip[data-g]').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on'); gin.value=c.dataset.g; chk();};
+  });
+  $('#chk').onclick=chk;
+  function chk(){
+    var g=UI.readGrammar(gin.value,msg); if(!g)return;
+    var c=PL.isOperatorGrammar(g);
+    var h='';
+    if(c.ok){
+      h+='<div class="banner ok"><span class="bi">&#10003;</span><div>This IS an operator grammar<small>No &epsilon;-productions and no two adjacent non-terminals.</small></div></div>';
+      h+='<div class="gbox out">'+UI.grammarHTML(g)+'</div>';
+    } else {
+      h+='<div class="banner bad"><span class="bi">&#10007;</span><div>NOT an operator grammar<small>'+c.problems.length+' violation(s) found.</small></div></div>';
+      h+='<div class="steps" style="margin-bottom:16px">';
+      c.problems.forEach(function(p,i){
+        h+='<div class="step"><span class="n">'+(i+1)+'</span><div class="bd"><b>'+UI.esc(p.prod)+'</b><span class="muted">'+UI.esc(p.why)+'</span></div></div>';
+      });
+      h+='</div>';
+      var conv=PL.toOperatorGrammar(g);
+      h+='<div class="grid g2"><div><h4 style="color:var(--bad)">Original</h4><div class="gbox in">'+UI.grammarHTML(g)+'</div></div>'+
+         '<div><h4 style="color:var(--ok)">Operator grammar</h4><div class="gbox out">'+UI.grammarHTML(conv.grammar)+'</div></div></div>';
+      if(conv.log.length){
+        h+='<h4 style="margin-top:20px">Conversion steps</h4><div class="steps">';
+        conv.log.forEach(function(l,i){
+          h+='<div class="step ok"><span class="n">'+(i+1)+'</span><div class="bd"><b>Substitute '+UI.esc(l.nt)+' &rarr; '+l.with.map(UI.esc).join(' | ')+'</b><span class="muted">'+UI.esc(l.text)+'</span></div></div>';
+        });
+        h+='</div>';
+        h+= conv.check.ok
+          ? '<div class="note good" style="margin-top:16px"><span class="ni">&#9989;</span><div>The converted grammar now satisfies both operator-grammar conditions.</div></div>'
+          : '<div class="note warn" style="margin-top:16px"><span class="ni">&#9888;</span><div>Some adjacency remains &mdash; it cannot be fixed by simple substitution.</div></div>';
+      }
+    }
+    $('#opOut').innerHTML=h;
+  }
+
+  $('#run').onclick=function(){
+    var lv=[];
+    [$('#lv1'),$('#lv2'),$('#lv3')].forEach(function(inp){
+      var ops=inp.value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+      if(ops.length) lv.push({ops:ops,assoc:'left'});
+    });
+    var atoms=$('#atoms').value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+    if(!lv.length||!atoms.length){$('#tblOut').innerHTML='<div class="note warn"><span class="ni">&#9888;</span><div>Enter at least one precedence level and one atom.</div></div>';return;}
+    /* include brackets automatically if present in the input */
+    var w=$('#win').value;
+    var toks=PL.tokenize(w);
+    var pt=PL.precedenceTable(lv,atoms);
+
+    var syms=pt.symbols;
+    var h='<label class="lb">Precedence relation table &mdash; row = stack top, column = lookahead</label>';
+    h+='<div class="tw"><table class="ptable"><thead><tr><th class="rowh">&#9660; stack \\ input &#9654;</th>';
+    syms.forEach(function(s){h+='<th class="colh">'+UI.esc(s)+'</th>';});
+    h+='</tr></thead><tbody>';
+    syms.forEach(function(a){
+      h+='<tr><td class="rowh">'+UI.esc(a)+'</td>';
+      syms.forEach(function(b){
+        var v=pt.table.get(a).get(b);
+        if(v==='accept') h+='<td class="filled" style="background:var(--ok-bg);color:var(--ok)">acc</td>';
+        else if(!v) h+='<td class="empty">&ndash;</td>';
+        else h+='<td class="filled" style="font-size:1.25rem">'+v+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div class="legend"><span><b style="color:var(--warn);font-size:1.1rem">&#8918;</b> shift (input has higher precedence)</span>'+
+       '<span><b style="color:var(--warn);font-size:1.1rem">&#8919;</b> reduce (stack has higher precedence)</span>'+
+       '<span><b>&ndash;</b> no relation &rarr; error</span></div>';
+    $('#tblOut').innerHTML=h;
+
+    if(!toks.length){$('#simHost').innerHTML='';$('#traceHost').innerHTML='';return;}
+    var r=PL.opPrecParse(pt,toks);
+    var all=toks.concat(['$']);
+    $('#simHost').innerHTML='<div class="card" id="simCard"><h3>Animated operator-precedence parse</h3>'+
+      '<div class="player" id="player"></div>'+
+      '<div class="action init" id="action"></div>'+
+      '<label class="lb" style="margin-top:18px">Input tape</label><div class="tape" id="tape"></div>'+
+      '<div style="margin-top:18px;max-width:340px"><div class="stack-box" id="stack"></div></div></div>';
+    $('#simCard').insertAdjacentHTML('afterbegin', r.ok
+      ? '<div class="banner ok"><span class="bi">&#10003;</span><div>String ACCEPTED</div></div>'
+      : '<div class="banner bad"><span class="bi">&#10007;</span><div>Parse failed<small>'+UI.esc(r.error||'')+'</small></div></div>');
+
+    function step(i){
+      var s=r.steps[i];
+      UI.renderStack(null,s.stack,$('#stack'),'Operator stack');
+      UI.renderTape(null,all,all.length-s.input.length,$('#tape'));
+      var bdg={init:'Start',shift:'Shift',reduce:'Reduce',accept:'Accept',error:'Error'}[s.cls]||'Step';
+      $('#action').className='action '+s.cls;
+      $('#action').innerHTML='<span class="bdg">'+bdg+'</span><span>'+UI.esc(s.action)+'</span>';
+    }
+    UI.makePlayer($('#player'),r.steps.length,step,{speed:5});
+
+    var t='<div class="card"><h3>Complete trace</h3><div class="tw"><table><thead><tr><th style="width:44px">#</th><th>Stack</th><th>Input</th><th>Action</th></tr></thead><tbody>';
+    r.steps.forEach(function(s,i){
+      var col=s.cls==='accept'?'var(--ok)':s.cls==='error'?'var(--bad)':s.cls==='reduce'?'var(--nt)':'var(--info)';
+      t+='<tr><td class="mono">'+(i+1)+'</td><td class="mono">'+UI.esc(s.stack.join(' '))+'</td><td class="mono">'+
+         UI.esc(s.input.join(' '))+'</td><td style="color:'+col+';font-weight:600">'+UI.esc(s.action)+'</td></tr>';
+    });
+    t+='</tbody></table></div></div>';
+    $('#traceHost').innerHTML=t;
+  };
+
+  chk();
+  $('#run').click();
+})();
+</script>
+</body>
+</html>

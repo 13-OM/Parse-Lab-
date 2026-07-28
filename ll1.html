@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LL(1) Parsing · Parse Lab</title>
+<meta name="description" content="Predictive parsing table and animated top-down parse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127793;</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="index.html"><span class="logo">&#8594;</span> Parse&nbsp;Lab</a>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="theory.html"><span class="nnum">1</span>Theory</a>
+      <a href="left-recursion.html"><span class="nnum">2</span>Left Recursion</a>
+      <a href="left-factoring.html"><span class="nnum">3</span>Left Factoring</a>
+      <a href="first-follow.html"><span class="nnum">4</span>FIRST &amp; FOLLOW</a>
+      <a href="ll1.html"><span class="nnum">5</span>LL(1)</a>
+      <a href="bottom-up.html"><span class="nnum">6</span>Bottom-Up</a>
+      <a href="operator.html"><span class="nnum">7</span>Operator Prec.</a>
+      <a href="questions.html"><span class="nnum">8</span>Questions</a>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn burger" data-act="menu" title="Menu">&#9776;</button>
+      <button class="icon-btn" data-act="proj" title="Projector mode (bigger text)">&#128253;</button>
+      <button class="icon-btn" data-act="theme" title="Dark / light">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero" style="padding:52px 0 26px">
+  <div class="wrap">
+    <span class="pill">Section 5</span>
+    <h1>LL(1) <span class="g">Top-Down Parsing</span></h1>
+    <p>Build the predictive table, then watch the stack, the input tape, the table cell and the parse tree move together on every single step.</p>
+  </div>
+</section><section id="def">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">5.1</div>
+      <div><h2>Definition and algorithm</h2><p class="sub"></p></div>
+    </div>
+    <div class="def v-a"><h4>LL(1) parsing <span class="tag">definition</span></h4>
+<p><b>L</b>eft-to-right scan &middot; <b>L</b>eftmost derivation &middot; <b>1</b> token of lookahead.
+A <b>predictive parser</b> is a top-down parser that never backtracks: the lookahead token plus the
+non-terminal on top of the stack uniquely select the production to apply.</p>
+<p>The parser is a table plus a stack plus a driver loop &mdash; no recursion needed.</p></div><div class="def v-nt"><h4>The driver algorithm <span class="tag">algorithm</span></h4>
+<p>Push <span class="sym end">$</span> then the start symbol. Let <b>X</b> = top of stack, <b>a</b> = lookahead.</p>
+<ol>
+<li>If X = a = <span class="sym end">$</span> &rarr; <b>accept</b>.</li>
+<li>If X is a terminal: if X = a, pop X and advance the input (<b>match</b>); otherwise <b>error</b>.</li>
+<li>If X is a non-terminal: look up <b>M[X, a]</b>.
+ <ul><li>Empty &rarr; <b>error</b>.</li>
+ <li>Holds <code>X &rarr; Y&#8321;Y&#8322;&hellip;Y&#8342;</code> &rarr; pop X and push Y&#8342;&hellip;Y&#8322;Y&#8321;
+ (<b>reversed</b>, so Y&#8321; ends up on top). This is an <b>expand</b> step; nothing is consumed.</li>
+ <li>For <code>X &rarr; <span class="sym e">&epsilon;</span></code> pop X and push nothing.</li></ul></li>
+</ol>
+<div class="note tip"><span class="ni">&#128161;</span><div><b>Why reversed?</b> A stack pops last-in-first-out.
+The parser must meet Y&#8321; first, so Y&#8321; has to be pushed last.</div></div></div><div class="def v-t"><h4>Building the table <span class="tag">rule</span></h4>
+<p>For every production <code>A &rarr; &alpha;</code>: put it in M[A, a] for each terminal a in FIRST(&alpha;);
+and if <span class="sym e">&epsilon;</span> &isin; FIRST(&alpha;), put it in M[A, b] for each b in FOLLOW(A).
+<b>Any cell receiving two productions means the grammar is not LL(1).</b></p></div>
+  </div>
+</section><section id="tool">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">5.2</div>
+      <div><h2>Table builder &amp; animated parser</h2><p class="sub">Load an example, then press play.</p></div>
+    </div>
+    
+<div class="card">
+  <div class="split-wide">
+    <div>
+      <label class="lb">Grammar</label>
+      <textarea id="gin" spellcheck="false" style="min-height:150px"></textarea>
+      <label class="lb" style="margin-top:16px">Input string to parse</label>
+      <input type="text" id="win" spellcheck="false" placeholder="id * ( id + id )">
+      <p class="muted" style="margin:8px 0 0;font-size:.82rem">Spaces optional. <code>id</code> is read as one token.</p>
+      <div class="btn-row">
+        <button class="btn" id="run">Build table &amp; parse</button>
+        <button class="btn ghost" id="tblOnly">Table only</button>
+      </div>
+      <label class="lb" style="margin-top:20px">Saved examples</label>
+      <div class="chips"><button class="chip" data-ex="0">E&rarr;TA &nbsp;&middot;&nbsp; id*(id+id)</button><button class="chip" data-ex="1">S&rarr;aAC|Bb</button><button class="chip" data-ex="2">S&rarr;AaAb|BbBa</button><button class="chip" data-ex="3">Dangling else</button><button class="chip" data-ex="4">&#9888; Left recursive (fails!)</button></div>
+      <div class="note warn" style="margin-top:16px"><span class="ni">&#9888;</span><div style="font-size:.87rem">
+      The last example is <b>deliberately left recursive</b>. Load it to see exactly how an LL(1) parser dies:
+      the table fills with conflicts and the parser expands forever without ever consuming a token.
+      Fix it on the <a href="left-recursion.html">left recursion page</a>, then bring it back here.</div></div>
+    </div>
+    <div>
+      <div id="msg"></div>
+      <div id="sets" class="card" style="box-shadow:none;margin-bottom:18px"></div>
+      <div id="verdict"></div>
+      <label class="lb">Predictive parsing table &mdash; the active cell lights up during the animation</label>
+      <div id="tbl"></div>
+    </div>
+  </div>
+</div>
+<div id="simHost" style="margin-top:20px"></div>
+<div id="derivHost" style="margin-top:20px"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div><b>Parse Lab</b> &mdash; interactive compiler-design playground for syntax analysis.<br>
+    <span class="muted">Theory &rarr; animated tools &rarr; solved university questions. Works fully offline.</span></div>
+    <div><a href="index.html">Home</a> &nbsp;&middot;&nbsp; <a href="theory.html">Theory</a> &nbsp;&middot;&nbsp; <a href="questions.html">Questions</a></div>
+  </div>
+</footer>
+
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+(function(){
+  var $=UI.$, EX=[["E -> TA\nA -> +TA | ε\nT -> VB\nB -> *VB | ε\nV -> id | (E)", "id * ( id + id )"], ["S -> aAC | Bb\nA -> eD\nB -> f | g\nC -> h | i\nD -> bE | ε\nE -> eD | dD", "a e b e b h"], ["S -> AaAb | BbBa\nA -> ε\nB -> ε", "a b"], ["S -> iCtSeS | iCtS | a\nC -> b", "i b t a e a"], ["E -> E + T | T\nT -> T * F | F\nF -> ( E ) | id", "id + id * id"]];
+  var gin=$('#gin'), win=$('#win'), msg=$('#msg');
+
+  UI.$$('.chip[data-ex]').forEach(function(c){
+    c.onclick=function(){UI.$$('.chip[data-ex]').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on'); var e=EX[+c.dataset.ex]; gin.value=e[0]; win.value=e[1]; run(true);};
+  });
+  $('#run').onclick=function(){run(true)};
+  $('#tblOnly').onclick=function(){run(false)};
+  win.addEventListener('keydown',function(e){if(e.key==='Enter')run(true);});
+
+  function run(doParse){
+    var g=UI.readGrammar(gin.value,msg); if(!g)return;
+    var t=PL.ll1Table(g);
+    UI.renderSets(g,t.first,t.follow,$('#sets'));
+    $('#verdict').innerHTML=UI.ll1Verdict(t);
+    UI.renderLL1Table(g,t,$('#tbl'));
+    $('#simHost').innerHTML=''; $('#derivHost').innerHTML='';
+    if(!doParse) return;
+
+    var toks=PL.tokenize(win.value||'');
+    if(!toks.length){ $('#simHost').innerHTML='<div class="note warn"><span class="ni">&#9888;</span><div>Type an input string to run the animation.</div></div>'; return; }
+
+    $('#simHost').innerHTML='\n<div class="card" id="simCard">\n  <h3 id="simTitle">Animated parse &mdash; stack, tape and parse tree</h3>\n  <div class="player" id="player"></div>\n  <div class="action init" id="action"><span class="bdg">Ready</span><span>Press play to start the animation.</span></div>\n  <label class="lb" style="margin-top:18px">Input tape &mdash; the token being read is highlighted</label>\n  <div class="tape" id="tape"></div>\n  <div class="sim" style="margin-top:18px">\n    <div class="stack-box" id="stack"></div>\n    <div>\n      <label class="lb">Parse tree &mdash; grows as the parser expands</label>\n      <div class="tree-wrap" id="tree"></div>\n    </div>\n  </div>\n</div>';
+    var sim=UI.mountLL1Sim({g:g,tbl:t,tokens:toks,hosts:{
+      stack:$('#stack'),tape:$('#tape'),action:$('#action'),tree:$('#tree'),table:$('#tbl')}});
+    UI.makePlayer($('#player'),sim.total,sim.step,{speed:5});
+
+    var r=sim.res;
+    var banner = r.ok
+      ? '<div class="banner ok"><span class="bi">&#10003;</span><div>String ACCEPTED<small>'+UI.esc(toks.join(' '))+' &mdash; parsed in '+r.steps.length+' steps.</small></div></div>'
+      : '<div class="banner bad"><span class="bi">&#10007;</span><div>String REJECTED<small>'+UI.esc(r.error||'Parse failed.')+'</small></div></div>';
+    $('#simCard').insertAdjacentHTML('afterbegin',banner);
+
+    /* full move table + derivation */
+    var h='<div class="card"><h3>Complete parsing trace</h3><div class="tw"><table><thead><tr>'+
+      '<th style="width:44px">#</th><th>Stack</th><th>Input remaining</th><th>Action</th></tr></thead><tbody>';
+    r.steps.forEach(function(s,i){
+      var col=s.cls==='accept'?'var(--ok)':s.cls==='error'?'var(--bad)':s.cls==='match'?'var(--term)':s.cls==='expand'?'var(--nt)':'var(--ink-3)';
+      h+='<tr><td class="mono">'+(i+1)+'</td><td class="mono">'+UI.esc(s.stack.join(' '))+
+         '</td><td class="mono">'+UI.esc(s.input.join(' '))+
+         '</td><td style="color:'+col+';font-weight:600">'+UI.esc(s.action)+'</td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+    if(r.ok){
+      h+='<div class="card" style="margin-top:20px"><h3>Leftmost derivation produced</h3>'+
+         '<p class="muted">A top-down parser always traces the leftmost derivation &mdash; each line is one expand step.</p>'+
+         '<div class="deriv" id="dv"></div></div>';
+    }
+    $('#derivHost').innerHTML=h;
+    if(r.ok) UI.renderDeriv(g,r.tree,$('#dv'),true);
+  }
+  UI.$$('.chip[data-ex]')[0].click();
+})();
+</script>
+</body>
+</html>

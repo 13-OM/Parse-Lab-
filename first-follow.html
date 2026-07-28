@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FIRST and FOLLOW · Parse Lab</title>
+<meta name="description" content="Compute FIRST and FOLLOW sets and test LL(1)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127793;</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="index.html"><span class="logo">&#8594;</span> Parse&nbsp;Lab</a>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="theory.html"><span class="nnum">1</span>Theory</a>
+      <a href="left-recursion.html"><span class="nnum">2</span>Left Recursion</a>
+      <a href="left-factoring.html"><span class="nnum">3</span>Left Factoring</a>
+      <a href="first-follow.html"><span class="nnum">4</span>FIRST &amp; FOLLOW</a>
+      <a href="ll1.html"><span class="nnum">5</span>LL(1)</a>
+      <a href="bottom-up.html"><span class="nnum">6</span>Bottom-Up</a>
+      <a href="operator.html"><span class="nnum">7</span>Operator Prec.</a>
+      <a href="questions.html"><span class="nnum">8</span>Questions</a>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn burger" data-act="menu" title="Menu">&#9776;</button>
+      <button class="icon-btn" data-act="proj" title="Projector mode (bigger text)">&#128253;</button>
+      <button class="icon-btn" data-act="theme" title="Dark / light">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero" style="padding:52px 0 26px">
+  <div class="wrap">
+    <span class="pill">Section 4</span>
+    <h1>FIRST &amp; FOLLOW <span class="g">Sets</span></h1>
+    <p>The two sets every predictive parser is built on &mdash; computed with a full iteration trace, then used to test whether the grammar is LL(1).</p>
+  </div>
+</section><section id="def">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">4.1</div>
+      <div><h2>Definitions and rules</h2><p class="sub"></p></div>
+    </div>
+    <div class="def v-t"><h4>FIRST set <span class="tag">definition</span></h4>
+<p><b>FIRST(&alpha;)</b> is the set of terminals that can appear as the <i>first symbol</i> of some string
+derived from &alpha;. If &alpha; can derive the empty string, <span class="sym e">&epsilon;</span> is also in FIRST(&alpha;).</p>
+<p><b>Rules:</b></p>
+<ol>
+<li>If X is a terminal, FIRST(X) = { X }.</li>
+<li>If <code>X &rarr; <span class="sym e">&epsilon;</span></code> is a production, add <span class="sym e">&epsilon;</span> to FIRST(X).</li>
+<li>If <code>X &rarr; Y<sub>1</sub>Y<sub>2</sub>&hellip;Y<sub>k</sub></code>: add
+FIRST(Y<sub>1</sub>) &minus; {<span class="sym e">&epsilon;</span>} to FIRST(X). If Y<sub>1</sub> can derive <span class="sym e">&epsilon;</span>, also add
+FIRST(Y<sub>2</sub>) &minus; {<span class="sym e">&epsilon;</span>}, and so on. If <i>every</i> Y can derive <span class="sym e">&epsilon;</span>, add <span class="sym e">&epsilon;</span> to FIRST(X).</li>
+</ol></div><div class="def v-nt"><h4>FOLLOW set <span class="tag">definition</span></h4>
+<p><b>FOLLOW(A)</b> is the set of terminals that can appear <i>immediately to the right</i> of A in some
+sentential form derived from the start symbol.</p>
+<p><b>Rules:</b></p>
+<ol>
+<li>Put <span class="sym end">$</span> in FOLLOW(S) for the start symbol S.</li>
+<li>For a production <code>A &rarr; &alpha;B&beta;</code>: add FIRST(&beta;) &minus; {<span class="sym e">&epsilon;</span>} to FOLLOW(B).</li>
+<li>For <code>A &rarr; &alpha;B</code>, or <code>A &rarr; &alpha;B&beta;</code> where &beta; can derive <span class="sym e">&epsilon;</span>:
+add everything in FOLLOW(A) to FOLLOW(B).</li>
+</ol>
+<div class="note tip"><span class="ni">&#128161;</span><div><span class="sym e">&epsilon;</span> is <b>never</b> a member of a FOLLOW set.
+FOLLOW answers "what real token can come next", and the end marker <span class="sym end">$</span> covers
+"nothing comes next". Keep applying the rules until no set changes &mdash; this is a fixed-point computation.</div></div></div><div class="def v-a"><h4>The LL(1) test <span class="tag">rule</span></h4>
+<p>Build the predictive table: for each production <code>A &rarr; &alpha;</code>,</p>
+<ul><li>for every terminal <code>a</code> in FIRST(&alpha;), put <code>A &rarr; &alpha;</code> in M[A, a];</li>
+<li>if <span class="sym e">&epsilon;</span> is in FIRST(&alpha;), put <code>A &rarr; &alpha;</code> in M[A, b] for every b in FOLLOW(A)
+(including <span class="sym end">$</span> if present).</li></ul>
+<p>The grammar is <b>LL(1)</b> if and only if <b>no cell ends up with two or more productions</b>.</p></div>
+  </div>
+</section><section id="tool">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">4.2</div>
+      <div><h2>Interactive workbench</h2><p class="sub">Sets, iteration trace, table and LL(1) verdict.</p></div>
+    </div>
+    
+<div class="card">
+  <div class="split-wide">
+    <div>
+      <label class="lb">Grammar &mdash; one non-terminal per line</label>
+      <textarea id="gin" spellcheck="false" placeholder="S -> Aa | b
+A -> c"></textarea>
+      <p class="muted" style="margin:8px 0 0;font-size:.82rem">
+        Use <code>-&gt;</code> or <code>&rarr;</code>. Separate alternatives with <code>|</code> or <code>/</code>.
+        Empty string: <code>e</code>, <code>&epsilon;</code>, <code>&euro;</code> or <code>eps</code>.
+        Capitals are non-terminals; <code>id</code> counts as one token.</p>
+      
+      <div class="btn-row">
+        <button class="btn" id="run">Compute sets</button>
+        <button class="btn ghost" id="clear">Clear</button>
+      </div>
+      <label class="lb" style="margin-top:20px">Saved examples &mdash; click to load</label>
+      <div class="chips"><button class="chip" data-ex="0">S&rarr;Aa|bAc|Bc|bBa</button><button class="chip" data-ex="1">S&rarr;AaAb|BbBa</button><button class="chip" data-ex="2">S&rarr;aAC|Bb</button><button class="chip" data-ex="3">E&rarr;TA (expression)</button><button class="chip" data-ex="4">Dangling else</button></div>
+    </div>
+    <div>
+      <div id="msg"></div>
+      <div id="out"><p class="muted center" style="padding:56px 20px">Load an example or type your own grammar,
+      then press <b>Compute sets</b>.<br>The full working appears here, step by step.</p></div>
+    </div>
+  </div>
+</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div><b>Parse Lab</b> &mdash; interactive compiler-design playground for syntax analysis.<br>
+    <span class="muted">Theory &rarr; animated tools &rarr; solved university questions. Works fully offline.</span></div>
+    <div><a href="index.html">Home</a> &nbsp;&middot;&nbsp; <a href="theory.html">Theory</a> &nbsp;&middot;&nbsp; <a href="questions.html">Questions</a></div>
+  </div>
+</footer>
+
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+(function(){
+  var $=UI.$, EX=["S -> Aa | bAc | Bc | bBa\nA -> d\nB -> d", "S -> AaAb | BbBa\nA -> ε\nB -> ε", "S -> aAC | Bb\nA -> eD\nB -> f | g\nC -> h | i\nD -> bE | ε\nE -> eD | dD", "E -> TA\nA -> +TA | ε\nT -> VB\nB -> *VB | ε\nV -> id | (E)", "S -> iCtSeS | iCtS | a\nC -> b"];
+  var gin=$('#gin'), out=$('#out'), msg=$('#msg');
+  UI.$$('.chip[data-ex]').forEach(function(c){
+    c.onclick=function(){UI.$$('.chip[data-ex]').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on'); gin.value=EX[+c.dataset.ex]; run();};
+  });
+  $('#clear').onclick=function(){gin.value='';out.innerHTML='';msg.innerHTML='';};
+  $('#run').onclick=run;
+  gin.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='Enter')run();});
+
+  function run(){
+    var g=UI.readGrammar(gin.value,msg); if(!g)return;
+    var t=PL.ll1Table(g);
+    out.innerHTML='<div id="sets" class="card"></div>'+
+      '<div class="card" style="margin-top:20px"><h3>How each set was built</h3><div id="trace"></div></div>'+
+      '<div class="card" style="margin-top:20px"><h3>LL(1) parsing table</h3><div id="verdict"></div><div id="tbl"></div></div>';
+    UI.renderSets(g,t.first,t.follow,$('#sets'));
+
+    /* trace */
+    var h='<h4 style="color:var(--term)">FIRST &mdash; iteration trace</h4><div class="steps">';
+    var n=0;
+    t.firstTrace.forEach(function(r){
+      r.changes.forEach(function(c){ n++;
+        h+='<div class="step"><span class="n">'+n+'</span><div class="bd"><b>FIRST('+UI.esc(c.nt)+') grew &mdash; from '+UI.esc(c.prod)+'</b>'+
+           '<span class="muted">Pass '+r.round+' &nbsp;&rarr;&nbsp; now { '+c.set.map(function(s){return UI.chip(g,s)}).join(' ')+' }</span></div></div>';
+      });
+    });
+    h+='</div><h4 style="margin-top:24px;color:var(--nt)">FOLLOW &mdash; iteration trace</h4><div class="steps">';
+    n=0;
+    t.followTrace.forEach(function(r){
+      r.changes.forEach(function(c){ n++;
+        h+='<div class="step"><span class="n">'+n+'</span><div class="bd"><b>FOLLOW('+UI.esc(c.nt)+') grew &mdash; from '+UI.esc(c.prod)+'</b>'+
+           '<span class="muted">Added via '+UI.esc(c.reason)+' &nbsp;&rarr;&nbsp; now { '+c.set.map(function(s){return UI.chip(g,s)}).join(' ')+' }</span></div></div>';
+      });
+    });
+    h+='</div><p class="muted" style="margin-top:14px">The loop stops when a whole pass adds nothing new &mdash; that is the fixed point.</p>';
+    $('#trace').innerHTML=h;
+
+    $('#verdict').innerHTML=UI.ll1Verdict(t);
+    UI.renderLL1Table(g,t,$('#tbl'));
+  }
+  UI.$$('.chip[data-ex]')[0].click();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Left Recursion · Parse Lab</title>
+<meta name="description" content="Eliminate direct and indirect left recursion step by step">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127793;</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="index.html"><span class="logo">&#8594;</span> Parse&nbsp;Lab</a>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="theory.html"><span class="nnum">1</span>Theory</a>
+      <a href="left-recursion.html"><span class="nnum">2</span>Left Recursion</a>
+      <a href="left-factoring.html"><span class="nnum">3</span>Left Factoring</a>
+      <a href="first-follow.html"><span class="nnum">4</span>FIRST &amp; FOLLOW</a>
+      <a href="ll1.html"><span class="nnum">5</span>LL(1)</a>
+      <a href="bottom-up.html"><span class="nnum">6</span>Bottom-Up</a>
+      <a href="operator.html"><span class="nnum">7</span>Operator Prec.</a>
+      <a href="questions.html"><span class="nnum">8</span>Questions</a>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn burger" data-act="menu" title="Menu">&#9776;</button>
+      <button class="icon-btn" data-act="proj" title="Projector mode (bigger text)">&#128253;</button>
+      <button class="icon-btn" data-act="theme" title="Dark / light">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero" style="padding:52px 0 26px">
+  <div class="wrap">
+    <span class="pill">Section 2</span>
+    <h1>Left Recursion <span class="g">Elimination</span></h1>
+    <p>Spot it, understand why it breaks a top-down parser, and remove it with the &alpha;/&beta; rule &mdash; every substitution shown.</p>
+  </div>
+</section><section id="def">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">2.1</div>
+      <div><h2>Definition and rule</h2><p class="sub">Read this before running the tool.</p></div>
+    </div>
+    <div class="def v-bad"><h4>Left Recursion <span class="tag">definition</span></h4>
+<p>A grammar is <b>left recursive</b> if a non-terminal A can derive a sentential form whose leftmost symbol
+is A itself: <code>A &rArr;<sup>+</sup> A&alpha;</code>.</p>
+<p><b>Direct</b>: the production starts with A &mdash; <code>A &rarr; A&alpha;</code>.<br>
+<b>Indirect</b>: it takes two or more steps &mdash; <code>A &rarr; B&beta;</code>, <code>B &rarr; A&gamma;</code>.</p>
+<p>A recursive-descent parser for <code>A &rarr; A&alpha;</code> would call <code>A()</code> as its first action,
+consuming nothing, and loop forever. So left recursion must be removed before any top-down parsing.</p></div><div class="def v-ok"><h4>The elimination rule <span class="tag">rule</span></h4>
+<p>Group the productions of A into the ones that <b>start with A</b> and the ones that <b>do not</b>:</p>
+<div class="gbox in"><div>A &rarr; A&alpha;<sub>1</sub> | A&alpha;<sub>2</sub> | &hellip; | A&alpha;<sub>m</sub>
+&nbsp;|&nbsp; &beta;<sub>1</sub> | &beta;<sub>2</sub> | &hellip; | &beta;<sub>n</sub></div></div>
+<p style="margin:14px 0 10px"><b>Replace</b> them with a right-recursive pair using a fresh non-terminal A&prime;:</p>
+<div class="gbox out">
+<div>A&nbsp; &rarr; &beta;<sub>1</sub>A&prime; | &beta;<sub>2</sub>A&prime; | &hellip; | &beta;<sub>n</sub>A&prime;</div>
+<div>A&prime; &rarr; &alpha;<sub>1</sub>A&prime; | &alpha;<sub>2</sub>A&prime; | &hellip; | &alpha;<sub>m</sub>A&prime; | <span class="sym e">&epsilon;</span></div></div>
+<p style="margin-top:14px"><b>In words:</b> A must now <i>start</i> with one of the &beta; strings (the only way it
+could ever really start), and A&prime; repeats the &alpha; parts zero or more times before stopping with <span class="sym e">&epsilon;</span>.</p>
+<div class="note warn"><span class="ni">&#9888;</span><div>If there is no &beta; alternative at all, A can never
+produce a terminal string &mdash; the grammar is faulty, not just left recursive.</div></div></div><div class="def v-a"><h4>Indirect left recursion &mdash; the substitution algorithm <span class="tag">algorithm</span></h4>
+<p>Order the non-terminals A<sub>1</sub>, A<sub>2</sub>, &hellip;, A<sub>n</sub>. Then:</p>
+<pre style="background:var(--bg-2);padding:16px 20px;border-radius:10px;border:1px solid var(--line);font-family:var(--mono);font-size:.92rem;line-height:1.8;overflow-x:auto">for i = 1 to n:
+    for j = 1 to i-1:
+        replace every production  A&#7522; &rarr; A&#11388;&gamma;
+        by       A&#7522; &rarr; &delta;&#8321;&gamma; | &delta;&#8322;&gamma; | ...   where A&#11388; &rarr; &delta;&#8321; | &delta;&#8322; | ...
+    eliminate the immediate left recursion on A&#7522;</pre>
+<p>The inner loop rewrites every "backward" reference so that any remaining recursion becomes direct,
+and the last line then clears it with the rule above.</p></div>
+  </div>
+</section><section id="tool">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">2.2</div>
+      <div><h2>Interactive workbench</h2><p class="sub">Load a saved question or paste your own grammar.</p></div>
+    </div>
+    
+<div class="card">
+  <div class="split-wide">
+    <div>
+      <label class="lb">Grammar &mdash; one non-terminal per line</label>
+      <textarea id="gin" spellcheck="false" placeholder="A -> Aa | b"></textarea>
+      <p class="muted" style="margin:8px 0 0;font-size:.82rem">
+        Use <code>-&gt;</code> or <code>&rarr;</code>. Separate alternatives with <code>|</code> or <code>/</code>.
+        Empty string: <code>e</code>, <code>&epsilon;</code>, <code>&euro;</code> or <code>eps</code>.
+        Capitals are non-terminals; <code>id</code> counts as one token.</p>
+      
+      <div class="btn-row">
+        <button class="btn" id="run">Solve</button>
+        <button class="btn ghost" id="clear">Clear</button>
+      </div>
+      <label class="lb" style="margin-top:20px">Saved examples &mdash; click to load</label>
+      <div class="chips"><button class="chip" data-ex="0">A &rarr; Aa | b</button><button class="chip" data-ex="1">S/A indirect</button><button class="chip" data-ex="2">A &rarr; Ad|Ae|aB|aC</button><button class="chip" data-ex="3">A &rarr; Ax|Ay|AB|c|d</button><button class="chip" data-ex="4">S &rarr; A; A &rarr; aB|Ad</button><button class="chip" data-ex="5">Expression grammar</button></div>
+    </div>
+    <div>
+      <div id="msg"></div>
+      <div id="out"><p class="muted center" style="padding:56px 20px">Load an example or type your own grammar,
+      then press <b>Solve</b>.<br>The full working appears here, step by step.</p></div>
+    </div>
+  </div>
+</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div><b>Parse Lab</b> &mdash; interactive compiler-design playground for syntax analysis.<br>
+    <span class="muted">Theory &rarr; animated tools &rarr; solved university questions. Works fully offline.</span></div>
+    <div><a href="index.html">Home</a> &nbsp;&middot;&nbsp; <a href="theory.html">Theory</a> &nbsp;&middot;&nbsp; <a href="questions.html">Questions</a></div>
+  </div>
+</footer>
+
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+(function(){
+  var $=UI.$, EX=["A -> Aa | b", "S -> Aa | b\nA -> Ac | Sd | ε", "S -> A\nA -> Ad | Ae | aB | aC\nB -> bBC | f\nC -> g", "A -> A x | A y | A B | c | d\nB -> e", "S -> A\nA -> aB / Ad\nB -> bBC / f\nC -> g", "E -> E + T | T\nT -> T * F | F\nF -> ( E ) | id"];
+  var gin=$('#gin'), out=$('#out'), msg=$('#msg');
+  UI.$$('.chip[data-ex]').forEach(function(c){
+    c.onclick=function(){
+      UI.$$('.chip[data-ex]').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on'); gin.value=EX[+c.dataset.ex]; run();
+    };
+  });
+  $('#clear').onclick=function(){gin.value='';out.innerHTML='';msg.innerHTML='';};
+  $('#run').onclick=run;
+  gin.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='Enter')run();});
+
+  function run(){
+    var g=UI.readGrammar(gin.value,msg); if(!g)return;
+    var chk=PL.hasLeftRecursion(g);
+    var res=PL.removeLeftRecursion(g);
+    var h='';
+
+    if(!chk.any){
+      h+='<div class="banner ok"><span class="bi">&#10003;</span><div>No left recursion found'+
+         '<small>No non-terminal can derive a form starting with itself. This grammar is already fit for top-down parsing.</small></div></div>';
+    } else {
+      var bits=[];
+      if(chk.direct.length) bits.push('<b>Direct</b> on '+[...new Set(chk.direct.map(function(p){return p.lhs}))].join(', '));
+      if(chk.indirect.length) bits.push('<b>Indirect</b> on '+chk.indirect.join(', '));
+      h+='<div class="banner bad"><span class="bi">&#10007;</span><div>Left recursion detected<small>'+bits.join(' &nbsp;&middot;&nbsp; ')+'</small></div></div>';
+    }
+
+    h+='<div class="grid g2"><div><h4 style="color:var(--bad)">Input grammar</h4><div class="gbox in">'+UI.grammarHTML(g)+'</div></div>';
+    h+='<div><h4 style="color:var(--ok)">Left-recursion-free grammar</h4><div class="gbox out">'+UI.grammarHTML(res.grammar)+'</div></div></div>';
+
+    if(chk.any){
+      h+='<h4 style="margin-top:26px">Step-by-step working</h4><div class="steps">';
+      var n=0;
+      res.log.forEach(function(l){
+        if(l.type==='head'){ h+='<div class="step"><span class="n">&#9679;</span><div class="bd"><b>'+UI.esc(l.text)+'</b></div></div>'; return; }
+        if(l.type==='ok'){ return; }
+        n++;
+        var cls=l.type==='warn'?'warn':(l.type==='sub'?'sub':'elim');
+        h+='<div class="step '+cls+'"><span class="n">'+n+'</span><div class="bd"><b>'+UI.esc(l.text)+'</b>';
+        if(l.type==='elim'){
+          h+='<div class="kv" style="margin:6px 0 4px">';
+          l.alpha.forEach(function(a,i){h+='<span>&alpha;'+(i+1)+' = '+UI.esc(a)+'</span>';});
+          l.beta.forEach(function(b,i){h+='<span>&beta;'+(i+1)+' = '+UI.esc(b)+'</span>';});
+          h+='</div><span class="muted">Apply A &rarr; &beta;A&prime;, &nbsp; A&prime; &rarr; &alpha;A&prime; | &epsilon; with A = '+UI.esc(l.nt)+', A&prime; = '+UI.esc(l.prime)+'</span>';
+        }
+        if(l.detail) h+='<pre>'+UI.esc(l.detail)+'</pre>';
+        h+='</div></div>';
+      });
+      h+='</div>';
+      h+='<div class="note tip" style="margin-top:20px"><span class="ni">&#128161;</span><div>'+
+         'Notice the shape of the result: every new rule is <b>right</b> recursive, and each primed non-terminal ends with an '+
+         '<span class="sym e">&epsilon;</span> alternative &mdash; that is what lets the repetition stop.</div></div>';
+    }
+    out.innerHTML=h;
+  }
+  UI.$$('.chip[data-ex]')[0].click();
+})();
+</script>
+</body>
+</html>
