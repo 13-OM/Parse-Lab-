@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Left Factoring · Parse Lab</title>
+<meta name="description" content="Remove common prefixes from grammar alternatives">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127793;</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="index.html"><span class="logo">&#8594;</span> Parse&nbsp;Lab</a>
+
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="theory.html"><span class="nnum">1</span>Theory</a>
+      <a href="left-recursion.html"><span class="nnum">2</span>Left Recursion</a>
+      <a href="left-factoring.html"><span class="nnum">3</span>Left Factoring</a>
+      <a href="first-follow.html"><span class="nnum">4</span>FIRST &amp; FOLLOW</a>
+      <a href="ll1.html"><span class="nnum">5</span>LL(1)</a>
+      <a href="bottom-up.html"><span class="nnum">6</span>Bottom-Up</a>
+      <a href="operator.html"><span class="nnum">7</span>Operator Prec.</a>
+      <a href="questions.html"><span class="nnum">8</span>Questions</a>
+    </nav>
+
+    <div class="tools">
+      <a
+        id="backToLab"
+        class="back-lab-btn"
+        href="#"
+        title="Return to your practical"
+        style="display:none;"
+      >
+        &#8592; Back to Practical
+      </a>
+
+      <button class="icon-btn burger" data-act="menu" title="Menu">&#9776;</button>
+      <button class="icon-btn" data-act="proj" title="Projector mode (bigger text)">&#128253;</button>
+      <button class="icon-btn" data-act="theme" title="Dark / light">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero" style="padding:52px 0 26px">
+  <div class="wrap">
+    <span class="pill">Section 3</span>
+    <h1>Left <span class="g">Factoring</span></h1>
+    <p>Remove common prefixes so a predictive parser can decide with a single lookahead token.</p>
+  </div>
+</section><section id="def">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">3.1</div>
+      <div><h2>Definition and rule</h2><p class="sub"></p></div>
+    </div>
+    <div class="def v-a"><h4>Left Factoring <span class="tag">definition</span></h4>
+<p><b>Left factoring</b> is a grammar transformation that removes the need to guess. If two or more
+alternatives of the same non-terminal begin with the same string of symbols, a parser with one token
+of lookahead cannot tell them apart.</p>
+<div class="gbox in"><div>A &rarr; &alpha;&beta;<sub>1</sub> | &alpha;&beta;<sub>2</sub> | &gamma;</div></div>
+<p style="margin:14px 0 10px">Pull the longest common prefix &alpha; out into its own production:</p>
+<div class="gbox out"><div>A&nbsp; &rarr; &alpha;A&prime; | &gamma;</div>
+<div>A&prime; &rarr; &beta;<sub>1</sub> | &beta;<sub>2</sub></div></div>
+<p style="margin-top:14px">Now the parser consumes &alpha; first, and only <i>afterwards</i> has to choose between
+&beta;<sub>1</sub> and &beta;<sub>2</sub> &mdash; by which time the deciding token is the lookahead.
+Repeat until no two alternatives of any non-terminal share a prefix.</p></div><div class="def v-bad"><h4>Where you meet it <span class="tag">note</span></h4>
+<p>The famous case is the <b>dangling else</b>: <code>S &rarr; iCtSeS | iCtS | a</code>. Both alternatives start
+with <code>iCtS</code>, so the grammar is not LL(1) as written.</p>
+<div class="note warn"><span class="ni">&#9888;</span><div>Left factoring is <b>necessary but not sufficient</b>.
+After factoring the dangling-else grammar you get <code>S&prime; &rarr; eS | &epsilon;</code>, and because
+<code>e</code> is in both FIRST(eS) and FOLLOW(S&prime;), the table <i>still</i> has a conflict.
+The grammar is genuinely ambiguous &mdash; factoring cannot fix ambiguity.</div></div></div>
+  </div>
+</section><section id="tool">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">3.2</div>
+      <div><h2>Interactive workbench</h2><p class="sub">Watch each prefix get pulled out.</p></div>
+    </div>
+    
+<div class="card">
+  <div class="split-wide">
+    <div>
+      <label class="lb">Grammar &mdash; one non-terminal per line</label>
+      <textarea id="gin" spellcheck="false" placeholder="A -> ab | abc | abd"></textarea>
+      <p class="muted" style="margin:8px 0 0;font-size:.82rem">
+        Use <code>-&gt;</code> or <code>&rarr;</code>. Separate alternatives with <code>|</code> or <code>/</code>.
+        Empty string: <code>e</code>, <code>&epsilon;</code>, <code>&euro;</code> or <code>eps</code>.
+        Capitals are non-terminals; <code>id</code> counts as one token.</p>
+      
+      <div class="btn-row">
+        <button class="btn" id="run">Left factor</button>
+        <button class="btn ghost" id="clear">Clear</button>
+      </div>
+      <label class="lb" style="margin-top:20px">Saved examples &mdash; click to load</label>
+      <div class="chips"><button class="chip" data-ex="0">Dangling else</button><button class="chip" data-ex="1">A &rarr; ab | abc | abd</button><button class="chip" data-ex="2">S &rarr; aAB | aBc | aAc</button><button class="chip" data-ex="3">Statement grammar</button></div>
+    </div>
+    <div>
+      <div id="msg"></div>
+      <div id="out"><p class="muted center" style="padding:56px 20px">Load an example or type your own grammar,
+      then press <b>Left factor</b>.<br>The full working appears here, step by step.</p></div>
+    </div>
+  </div>
+</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div><b>Parse Lab</b> &mdash; interactive compiler-design playground for syntax analysis.<br>
+    <span class="muted">Theory &rarr; animated tools &rarr; solved university questions. Works fully offline.</span></div>
+    <div><a href="index.html">Home</a> &nbsp;&middot;&nbsp; <a href="theory.html">Theory</a> &nbsp;&middot;&nbsp; <a href="questions.html">Questions</a></div>
+  </div>
+</footer>
+
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+(function(){
+  var $=UI.$, EX=["S -> iCtSeS | iCtS | a\nC -> b", "A -> ab | abc | abd | e", "S -> aAB | aBc | aAc\nA -> d\nB -> f", "S -> if E then S | if E then S else S | other\nE -> b"];
+  var gin=$('#gin'), out=$('#out'), msg=$('#msg');
+  UI.$$('.chip[data-ex]').forEach(function(c){
+    c.onclick=function(){UI.$$('.chip[data-ex]').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on'); gin.value=EX[+c.dataset.ex]; run();};
+  });
+  $('#clear').onclick=function(){gin.value='';out.innerHTML='';msg.innerHTML='';};
+  $('#run').onclick=run;
+  gin.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='Enter')run();});
+
+  function run(){
+    var g=UI.readGrammar(gin.value,msg); if(!g)return;
+    var res=PL.leftFactor(g);
+    var did=res.log.some(function(l){return l.type==='factor';});
+    var h='';
+    h+= did
+      ? '<div class="banner warn"><span class="bi">&#9986;</span><div>Common prefixes found &mdash; grammar factored<small>'+res.log.filter(function(l){return l.type==="factor"}).length+' factoring step(s) applied.</small></div></div>'
+      : '<div class="banner ok"><span class="bi">&#10003;</span><div>Already left factored<small>No two alternatives of any non-terminal share a common prefix.</small></div></div>';
+
+    h+='<div class="grid g2"><div><h4 style="color:var(--bad)">Input grammar</h4><div class="gbox in">'+UI.grammarHTML(g)+'</div></div>';
+    h+='<div><h4 style="color:var(--ok)">Left-factored grammar</h4><div class="gbox out">'+UI.grammarHTML(res.grammar)+'</div></div></div>';
+
+    if(did){
+      h+='<h4 style="margin-top:26px">Step-by-step working</h4><div class="steps">';
+      var n=0;
+      res.log.forEach(function(l){
+        if(l.type!=='factor')return; n++;
+        h+='<div class="step factor"><span class="n">'+n+'</span><div class="bd"><b>'+UI.esc(l.text)+'</b>'+
+           '<span class="muted">Apply A &rarr; &alpha;A&prime;, &nbsp; A&prime; &rarr; &beta;&#8321; | &beta;&#8322; with &alpha; = <b>'+UI.esc(l.prefix)+
+           '</b>, A = '+UI.esc(l.nt)+', A&prime; = '+UI.esc(l.prime)+'</span><pre>'+UI.esc(l.detail)+'</pre></div></div>';
+      });
+      h+='</div>';
+    }
+
+    /* LL(1) status before/after */
+    var t1=PL.ll1Table(g), t2=PL.ll1Table(res.grammar);
+    h+='<hr class="sep"><h4>Did it become LL(1)?</h4><div class="grid g2">'+
+       '<div class="card" style="padding:18px"><b>Before factoring</b><br>'+
+       (t1.isLL1?'<span style="color:var(--ok);font-weight:800">LL(1) &#10003;</span>':'<span style="color:var(--bad);font-weight:800">Not LL(1) &mdash; '+t1.conflicts.length+' conflict(s)</span>')+'</div>'+
+       '<div class="card" style="padding:18px"><b>After factoring</b><br>'+
+       (t2.isLL1?'<span style="color:var(--ok);font-weight:800">LL(1) &#10003;</span>':'<span style="color:var(--bad);font-weight:800">Still not LL(1) &mdash; '+t2.conflicts.length+' conflict(s)</span>')+'</div></div>';
+    if(!t2.isLL1){
+      h+='<div class="note bad" style="margin-top:16px"><span class="ni">&#9888;</span><div><b>Still conflicting.</b> ';
+      h+=t2.conflicts.map(function(c){return 'M['+UI.esc(c.nt)+', '+UI.esc(c.term)+'] holds '+c.prods.length+' productions';}).join('<br>');
+      h+='<br>Left factoring removes <i>prefix</i> ambiguity only. A grammar that is genuinely ambiguous (like dangling-else) stays non-LL(1).</div></div>';
+    }
+    out.innerHTML=h;
+  }
+  UI.$$('.chip[data-ex]')[0].click();
+})();
+</script>
+</body>
+</html>

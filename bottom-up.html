@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bottom-Up Parsing · Parse Lab</title>
+<meta name="description" content="SLR(1) table construction and animated shift-reduce parsing">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127793;</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="index.html"><span class="logo">&#8594;</span> Parse&nbsp;Lab</a>
+
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="theory.html"><span class="nnum">1</span>Theory</a>
+      <a href="left-recursion.html"><span class="nnum">2</span>Left Recursion</a>
+      <a href="left-factoring.html"><span class="nnum">3</span>Left Factoring</a>
+      <a href="first-follow.html"><span class="nnum">4</span>FIRST &amp; FOLLOW</a>
+      <a href="ll1.html"><span class="nnum">5</span>LL(1)</a>
+      <a href="bottom-up.html"><span class="nnum">6</span>Bottom-Up</a>
+      <a href="operator.html"><span class="nnum">7</span>Operator Prec.</a>
+      <a href="questions.html"><span class="nnum">8</span>Questions</a>
+    </nav>
+
+    <div class="tools">
+      <a
+        id="backToLab"
+        class="back-lab-btn"
+        href="#"
+        title="Return to your practical"
+        style="display:none;"
+      >
+        &#8592; Back to Practical
+      </a>
+
+      <button class="icon-btn burger" data-act="menu" title="Menu">&#9776;</button>
+      <button class="icon-btn" data-act="proj" title="Projector mode (bigger text)">&#128253;</button>
+      <button class="icon-btn" data-act="theme" title="Dark / light">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero" style="padding:52px 0 26px">
+  <div class="wrap">
+    <span class="pill">Section 6</span>
+    <h1>Bottom-Up <span class="g">SLR(1) Shift &amp; Reduce</span></h1>
+    <p>Build the LR(0) item sets, derive the ACTION/GOTO table, then watch the state stack, the symbol stack and the parse tree assemble from the leaves upward.</p>
+  </div>
+</section><section id="def">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">6.1</div>
+      <div><h2>Definitions</h2><p class="sub"></p></div>
+    </div>
+    <div class="def v-t"><h4>Bottom-up parsing <span class="tag">definition</span></h4>
+<p>A bottom-up parser starts at the <b>leaves</b> (the tokens) and works towards the <b>root</b>.
+At each step it replaces a substring matching the right side of a production by that production's left side.
+This is a <b>reduction</b>, and the whole process traces a <b>rightmost derivation in reverse</b>.</p></div><div class="def v-nt"><h4>Handle <span class="tag">definition</span></h4>
+<p>A <b>handle</b> is a substring that (a) matches the right-hand side of some production, and
+(b) whose reduction is one correct step backwards along a rightmost derivation.</p>
+<p>Not every match is a handle &mdash; reducing the wrong match leads to a dead end. Finding the handle
+reliably is the entire job of the LR machinery.</p></div><div class="def v-ok"><h4>Shift-reduce parsing <span class="tag">algorithm</span></h4>
+<p>Uses a stack and four actions:</p>
+<ul>
+<li><b>Shift</b> &mdash; push the next input token onto the stack.</li>
+<li><b>Reduce</b> &mdash; the top of the stack is a handle: pop it, push the left-hand non-terminal.</li>
+<li><b>Accept</b> &mdash; the start symbol has been reduced and the input is finished.</li>
+<li><b>Error</b> &mdash; no move is possible.</li>
+</ul>
+<div class="note tip"><span class="ni">&#128161;</span><div><b>The key contrast.</b> In a top-down parser the stack
+holds what the parser <i>still expects</i>. In a bottom-up parser the stack holds what it has
+<i>already recognised</i>. Open the <a href="ll1.html">LL(1) page</a> in another tab and run both &mdash;
+the stacks move in opposite directions.</div></div></div><div class="def v-nt"><h4>LR(0) items and the automaton <span class="tag">definition</span></h4>
+<p>An <b>LR(0) item</b> is a production with a dot marking how much has been seen:
+<code>A &rarr; &alpha; &bull; &beta;</code> means &alpha; is already on the stack and &beta; is still expected.</p>
+<p><b>CLOSURE</b> of a set of items adds, for every item <code>A &rarr; &alpha; &bull; B&beta;</code>,
+all items <code>B &rarr; &bull; &gamma;</code> &mdash; because if we expect a B we may be starting any B production.
+<b>GOTO(I, X)</b> advances the dot past X and takes the closure. Starting from the augmented production
+<code>S&prime; &rarr; &bull; S</code> and repeating gives the <b>canonical collection</b> of item sets:
+the states of a DFA that recognises viable prefixes.</p></div><div class="def v-a"><h4>SLR(1) table construction <span class="tag">rule</span></h4>
+<p>From the automaton, for each state <b>i</b>:</p>
+<ul>
+<li>if <code>A &rarr; &alpha; &bull; a&beta;</code> is in state i and GOTO(i, a) = j, set <b>ACTION[i, a] = shift j</b>;</li>
+<li>if <code>A &rarr; &alpha; &bull;</code> is complete (A &ne; S&prime;), set <b>ACTION[i, a] = reduce A &rarr; &alpha;</b>
+for every <b>a in FOLLOW(A)</b> &mdash; this FOLLOW guard is what makes it <i>S</i>LR rather than LR(0);</li>
+<li>if <code>S&prime; &rarr; S &bull;</code> is in state i, set <b>ACTION[i, $] = accept</b>;</li>
+<li>if GOTO(i, A) = j for a non-terminal A, set <b>GOTO[i, A] = j</b>.</li>
+</ul></div><div class="def v-bad"><h4>Conflicts <span class="tag">definition</span></h4>
+<p><b>Shift-reduce conflict</b> &mdash; a cell could legally shift or reduce (the dangling else, or any
+ambiguous operator grammar).<br>
+<b>Reduce-reduce conflict</b> &mdash; two different productions are complete in the same state and share a
+FOLLOW symbol.</p>
+<div class="note warn"><span class="ni">&#9888;</span><div>If any conflict appears the grammar is <b>not SLR(1)</b>.
+This tool still parses by resolving them the way YACC does &mdash; <b>shift beats reduce</b>, and for
+reduce-reduce the earlier production wins &mdash; but it flags every conflict so you can see exactly where the
+grammar fails. Try the <b>"LL(1) but not SLR(1)"</b> example: it is perfectly LL(1), yet SLR(1) breaks on it.</div></div></div>
+  </div>
+</section><section id="tool">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">6.2</div>
+      <div><h2>Animated SLR(1) parser</h2><p class="sub">Table, conflicts, stack and tree.</p></div>
+    </div>
+    
+<div class="card">
+  <div class="split-wide">
+    <div>
+      <label class="lb">Grammar</label>
+      <textarea id="gin" spellcheck="false" style="min-height:150px"></textarea>
+      <label class="lb" style="margin-top:16px">Input string</label>
+      <input type="text" id="win" spellcheck="false" placeholder="id + id * id">
+      <div class="btn-row"><button class="btn ok" id="run">Build SLR(1) table &amp; parse</button></div>
+      <label class="lb" style="margin-top:20px">Saved examples</label>
+      <div class="chips"><button class="chip" data-ex="0">E&rarr;E+T (classic)</button><button class="chip" data-ex="1">S&rarr;aABe</button><button class="chip" data-ex="2">S&rarr;(L)|a</button><button class="chip" data-ex="3">Ambiguous E&rarr;E+E</button><button class="chip" data-ex="4">LL(1) but not SLR(1)</button></div>
+    </div>
+    <div>
+      <div id="msg"></div>
+      <div id="verdict"></div>
+      <label class="lb">ACTION / GOTO table &mdash; the active cell lights up during the animation</label>
+      <div id="tbl"></div>
+    </div>
+  </div>
+</div>
+<div id="simHost" style="margin-top:20px"></div>
+<div id="traceHost" style="margin-top:20px"></div>
+<div id="statesHost" style="margin-top:20px"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div><b>Parse Lab</b> &mdash; interactive compiler-design playground for syntax analysis.<br>
+    <span class="muted">Theory &rarr; animated tools &rarr; solved university questions. Works fully offline.</span></div>
+    <div><a href="index.html">Home</a> &nbsp;&middot;&nbsp; <a href="theory.html">Theory</a> &nbsp;&middot;&nbsp; <a href="questions.html">Questions</a></div>
+  </div>
+</footer>
+
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+(function(){
+  var $=UI.$, EX=[["E -> E + T | T\nT -> T * F | F\nF -> ( E ) | id", "id + id * id"], ["S -> a A B e\nA -> A b c | b\nB -> d", "a b b c d e"], ["S -> ( L ) | a\nL -> L , S | S", "( a , ( a , a ) )"], ["E -> E + E | E * E | id", "id + id * id"], ["S -> AaAb | BbBa\nA -> ε\nB -> ε", "a b"]];
+  var gin=$('#gin'), win=$('#win'), msg=$('#msg');
+  UI.$$('.chip[data-ex]').forEach(function(c){
+    c.onclick=function(){UI.$$('.chip[data-ex]').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on'); var e=EX[+c.dataset.ex]; gin.value=e[0]; win.value=e[1]; run();};
+  });
+  $('#run').onclick=run;
+  win.addEventListener('keydown',function(e){if(e.key==='Enter')run();});
+
+  function actStr(T,a){
+    if(!a) return '';
+    if(a.type==='shift') return 's'+a.n;
+    if(a.type==='reduce') return 'r'+a.n;
+    return 'acc';
+  }
+
+  function run(){
+    var g=UI.readGrammar(gin.value,msg); if(!g)return;
+    var T=PL.slr1Table(g);
+    var ag=T.grammar;
+
+    /* verdict */
+    var v='';
+    if(T.isSLR1) v='<div class="banner ok"><span class="bi">&#10003;</span><div>The grammar IS SLR(1)'+
+      '<small>'+T.states.length+' states, no conflicts in the ACTION table.</small></div></div>';
+    else{
+      v='<div class="banner bad"><span class="bi">&#10007;</span><div>The grammar is NOT SLR(1)'+
+        '<small>'+T.conflicts.length+' conflict(s) found &mdash; resolved YACC-style so the parse can still run.</small></div></div>';
+      v+='<div class="steps" style="margin-bottom:16px">';
+      T.conflicts.slice(0,8).forEach(function(c,i){
+        v+='<div class="step warn"><span class="n">'+(i+1)+'</span><div class="bd"><b>'+c.kind+' conflict in state '+c.state+' on "'+UI.esc(c.term)+'"</b>'+
+           '<span class="muted">'+UI.esc(actStr(T,c.a))+' vs '+UI.esc(actStr(T,c.b))+
+           ' &mdash; '+(c.kind==='shift-reduce'?'shift wins':'lower production number wins')+'</span></div></div>';
+      });
+      v+='</div>';
+    }
+    $('#verdict').innerHTML=v;
+
+    /* numbered productions */
+    var pl='<label class="lb">Numbered productions (used by r<i>n</i> in the table)</label><div class="gbox" style="font-size:.98rem;line-height:1.9">';
+    ag.prods.forEach(function(p,i){
+      pl+='<div><b style="color:var(--ink-3)">'+i+'.</b> &nbsp;'+UI.chip(ag,p.lhs)+'<span class="arrow">&rarr;</span>'+UI.chips(ag,p.rhs)+'</div>';
+    });
+    pl+='</div>';
+
+    /* ACTION/GOTO table */
+    var h=pl+'<div class="tw" style="margin-top:16px"><table class="ptable"><thead><tr><th class="rowh" rowspan="2">State</th>'+
+      '<th class="colh" colspan="'+T.terminals.length+'">ACTION</th>'+
+      '<th class="colh" colspan="'+T.nonterminals.length+'" style="background:var(--nt-bg);color:var(--nt)">GOTO</th></tr><tr>';
+    T.terminals.forEach(function(t){h+='<th class="colh">'+UI.esc(t)+'</th>';});
+    T.nonterminals.forEach(function(n){h+='<th class="colh" style="background:var(--nt-bg);color:var(--nt)">'+UI.esc(n)+'</th>';});
+    h+='</tr></thead><tbody>';
+    T.states.forEach(function(_,i){
+      h+='<tr><td class="rowh">'+i+'</td>';
+      T.terminals.forEach(function(t){
+        var a=T.ACTION[i].get(t);
+        var conf=T.conflicts.some(function(c){return c.state===i&&c.term===t;});
+        if(!a) h+='<td class="empty" data-ag="'+i+'|'+UI.esc(t)+'">&ndash;</td>';
+        else h+='<td class="'+(conf?'conflict':'filled')+'" data-ag="'+i+'|'+UI.esc(t)+'">'+actStr(T,a)+'</td>';
+      });
+      T.nonterminals.forEach(function(n){
+        var gt=T.GOTO[i].get(n);
+        h+='<td class="'+(gt===undefined?'empty':'filled')+'" style="'+(gt===undefined?'':'background:color-mix(in srgb,var(--nt) 12%,transparent);color:var(--nt)')+'" data-ag="'+i+'|'+UI.esc(n)+'">'+(gt===undefined?'&ndash;':gt)+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div class="legend"><span><b>s<i>n</i></b> shift and go to state n</span><span><b>r<i>n</i></b> reduce by production n</span>'+
+       '<span><b>acc</b> accept</span><span><b>&ndash;</b> error</span></div>';
+    $('#tbl').innerHTML=h;
+
+    /* parse */
+    var toks=PL.tokenize(win.value||'');
+    $('#simHost').innerHTML=''; $('#traceHost').innerHTML='';
+    if(toks.length){
+      var r=PL.slr1Parse(T,toks);
+      var all=toks.concat(['$']);
+      $('#simHost').innerHTML='\n<div class="card" id="simCard">\n  <h3 id="simTitle">Animated SLR(1) parse</h3>\n  <div class="player" id="player"></div>\n  <div class="action init" id="action"><span class="bdg">Ready</span><span>Press play to start the animation.</span></div>\n  <label class="lb" style="margin-top:18px">Input tape &mdash; the token being read is highlighted</label>\n  <div class="tape" id="tape"></div>\n  <div class="sim" style="margin-top:18px">\n    <div class="stack-box" id="stack"></div>\n    <div>\n      <label class="lb">Parse tree &mdash; assembles from the leaves upward</label>\n      <div class="tree-wrap" id="tree"></div>\n    </div>\n  </div>\n</div>';
+      $('#simCard').insertAdjacentHTML('afterbegin', r.ok
+        ? '<div class="banner ok"><span class="bi">&#10003;</span><div>String ACCEPTED<small>'+UI.esc(toks.join(' '))+' &mdash; reduced to the start symbol in '+r.steps.length+' steps.</small></div></div>'
+        : '<div class="banner bad"><span class="bi">&#10007;</span><div>String REJECTED<small>'+UI.esc(r.error||'')+'</small></div></div>');
+
+      var tv = r.tree ? UI.drawTree(r.tree,$('#tree'),{dx:72,dy:82}) : null;
+      if(!r.tree) $('#tree').innerHTML='<p class="muted center" style="padding:40px">No complete parse tree &mdash; the parse did not reach the start symbol.</p>';
+
+      function step(i){
+        var s=r.steps[i];
+        /* interleave states and symbols like a real LR stack */
+        var disp=[]; 
+        for(var k=0;k<s.states.length;k++){
+          disp.push({v:String(s.states[k]),k:'state'});
+          if(s.stack[k]!==undefined) disp.push(s.stack[k]);
+        }
+        UI.renderStack(ag,disp,$('#stack'),'LR stack (state / symbol)');
+        UI.renderTape(ag,all,all.length-s.input.length,$('#tape'));
+        var bdg={init:'Start',shift:'Shift',reduce:'Reduce',accept:'Accept',error:'Error'}[s.cls]||'Step';
+        $('#action').className='action '+s.cls;
+        $('#action').innerHTML='<span class="bdg">'+bdg+'</span><span>'+UI.esc(s.action)+'</span>';
+
+        UI.$$('.ptable td.hot',$('#tbl')).forEach(function(td){td.classList.remove('hot')});
+        if(s.cls==='shift'||s.cls==='reduce'||s.cls==='accept'){
+          var st=s.states[s.states.length-1], la=s.input[0];
+          if(s.cls!=='init'){
+            var prev=r.steps[i-1];
+            if(prev){ st=prev.states[prev.states.length-1]; la=prev.input[0]; }
+          }
+          var td=UI.$$('.ptable td[data-ag]',$('#tbl')).filter(function(x){return x.dataset.ag===st+'|'+la})[0];
+          if(td) td.classList.add('hot');
+        }
+        if(tv){
+          var reds=0; for(var q=0;q<=i;q++) if(r.steps[q].cls==='reduce') reds++;
+          var order=[]; (function post(n){n.children.forEach(post); if(n.children.length) order.push(n);})(r.tree);
+          var vis=new Set();
+          (function leaves(n){ if(!n.children.length) vis.add(n.id); n.children.forEach(leaves);})(r.tree);
+          for(var z=0;z<reds&&z<order.length;z++){ vis.add(order[z].id); order[z].children.forEach(function(c){vis.add(c.id)}); }
+          tv.map.forEach(function(val,id){ val.g.style.opacity=vis.has(id)?'1':'0.07'; val.g.classList.remove('pulse'); });
+          UI.$$('.tedge',tv.svg).forEach(function(e){ e.style.opacity=vis.has(+e.dataset.child)?'1':'0.07'; });
+          if(s.cls==='reduce'&&order[reds-1]){var x=tv.map.get(order[reds-1].id); if(x)x.g.classList.add('pulse');}
+        }
+      }
+      UI.makePlayer($('#player'),r.steps.length,step,{speed:5});
+
+      var m='<div class="card"><h3>Complete SLR(1) parse trace</h3><div class="tw"><table><thead><tr>'+
+        '<th style="width:44px">#</th><th>State stack</th><th>Symbol stack</th><th>Input</th><th>Action</th></tr></thead><tbody>';
+      r.steps.forEach(function(s,i){
+        var col=s.cls==='accept'?'var(--ok)':s.cls==='error'?'var(--bad)':s.cls==='reduce'?'var(--nt)':'var(--info)';
+        m+='<tr><td class="mono">'+(i+1)+'</td><td class="mono">'+s.states.join(' ')+'</td><td class="mono">'+
+           UI.esc(s.stack.join(' ')||'&nbsp;')+'</td><td class="mono">'+UI.esc(s.input.join(' '))+
+           '</td><td style="color:'+col+';font-weight:600">'+UI.esc(s.action)+'</td></tr>';
+      });
+      m+='</tbody></table></div>';
+      if(r.ok) m+='<h4 style="margin-top:22px">Rightmost derivation (the reductions read backwards)</h4><div class="deriv" id="dv"></div>';
+      m+='</div>';
+      $('#traceHost').innerHTML=m;
+      if(r.ok) UI.renderDeriv(ag,r.tree,$('#dv'),false);
+    }
+
+    /* canonical collection */
+    var sc='<div class="card"><h3>Canonical collection of LR(0) item sets</h3>'+
+      '<p class="muted">Each state is a set of items; the dot &bull; shows how much of the production has been seen. '+
+      'Arrows are the GOTO transitions of the automaton.</p><div class="grid g3">';
+    T.states.forEach(function(its,i){
+      sc+='<div class="card" style="padding:14px;box-shadow:none"><b style="color:var(--primary)">I'+i+'</b>'+
+          '<div class="gbox" style="font-size:.86rem;line-height:1.7;padding:10px 12px;margin-top:8px">';
+      its.forEach(function(it){ sc+='<div>'+UI.esc(T.itemStr(it))+'</div>'; });
+      sc+='</div>';
+      var outs=T.trans.filter(function(t){return t.from===i});
+      if(outs.length){
+        sc+='<div class="kv" style="margin-top:8px">';
+        outs.forEach(function(t){ sc+='<span>'+UI.esc(t.sym)+' &rarr; I'+t.to+'</span>'; });
+        sc+='</div>';
+      }
+      sc+='</div>';
+    });
+    sc+='</div></div>';
+    $('#statesHost').innerHTML=sc;
+  }
+  UI.$$('.chip[data-ex]')[0].click();
+})();
+</script>
+</body>
+</html>

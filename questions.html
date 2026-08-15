@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solved Questions · Parse Lab</title>
+<meta name="description" content="11 university exam questions on parsing, fully worked">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127793;</text></svg>">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="index.html"><span class="logo">&#8594;</span> Parse&nbsp;Lab</a>
+
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="theory.html"><span class="nnum">1</span>Theory</a>
+      <a href="left-recursion.html"><span class="nnum">2</span>Left Recursion</a>
+      <a href="left-factoring.html"><span class="nnum">3</span>Left Factoring</a>
+      <a href="first-follow.html"><span class="nnum">4</span>FIRST &amp; FOLLOW</a>
+      <a href="ll1.html"><span class="nnum">5</span>LL(1)</a>
+      <a href="bottom-up.html"><span class="nnum">6</span>Bottom-Up</a>
+      <a href="operator.html"><span class="nnum">7</span>Operator Prec.</a>
+      <a href="questions.html"><span class="nnum">8</span>Questions</a>
+    </nav>
+
+    <div class="tools">
+      <a
+        id="backToLab"
+        class="back-lab-btn"
+        href="#"
+        title="Return to your practical"
+        style="display:none;"
+      >
+        &#8592; Back to Practical
+      </a>
+
+      <button class="icon-btn burger" data-act="menu" title="Menu">&#9776;</button>
+      <button class="icon-btn" data-act="proj" title="Projector mode (bigger text)">&#128253;</button>
+      <button class="icon-btn" data-act="theme" title="Dark / light">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero" style="padding:52px 0 26px">
+  <div class="wrap">
+    <span class="pill">Section 8</span>
+    <h1>Solved <span class="g">Question Bank</span></h1>
+    <p>Eleven university exam questions, each worked out in full &mdash; not just the answer, but every
+    substitution, every set, every table cell, and an animated parse tree or stack trace where it helps.</p>
+  </div>
+</section><section id="bank">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">8.1</div>
+      <div><h2>The questions</h2><p class="sub">Click any card to open the full solution.</p></div>
+    </div>
+    
+<div class="filters">
+  <span class="muted" style="font-weight:700">Filter:</span>
+  <button class="chip on" data-f="all">All 11</button>
+  <button class="chip" data-f="lr">Left Recursion</button>
+  <button class="chip" data-f="ff">FIRST &amp; FOLLOW</button>
+  <button class="chip" data-f="ll">LL(1) Table</button>
+  <button class="chip" data-f="op">Operator Precedence</button>
+  <button class="chip" data-f="am">Ambiguity</button>
+  <span style="margin-left:auto"></span>
+  <button class="btn ghost sm" id="openAll">Expand all</button>
+  <button class="btn ghost sm" id="closeAll">Collapse all</button>
+</div>
+<div class="qcard" id="q1" data-tags="lr">
+  <div class="qhead">
+    <div class="qnum">1</div>
+    <div class="qtitle">
+      <b>Eliminate left recursion from the following grammar.</b>
+      <div class="qg">S → Aa / b
+A → Ac / Sd / ∈</div>
+      <div class="qtags"><span class="qtag lr">Left Recursion</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>This is the standard <b>indirect</b> left-recursion question. A is not obviously left recursive
+        &mdash; but <code>A &rarr; Sd</code> and <code>S &rarr; Aa</code> together give
+        <code>A &rArr; Sd &rArr; Aad</code>, so <b>A &rArr;<sup>+</sup> A&alpha;</b>.</p>
+        <p>Order the non-terminals <b>S, A</b>. S has no left recursion, so it is left alone. For A we first
+        substitute S (because S comes earlier in the order), which turns the indirect recursion into a direct one,
+        and only then apply the &alpha;/&beta; rule.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q2" data-tags="ff ll">
+  <div class="qhead">
+    <div class="qnum">2</div>
+    <div class="qtitle">
+      <b>Find First and Follow Set from following grammar. Check grammar is LL(1) or not?</b>
+      <div class="qg">S → Aa | bAc | Bc | bBa
+A → d
+B → d</div>
+      <div class="qtags"><span class="qtag ff">FIRST &amp; FOLLOW</span><span class="qtag ll">LL(1) Table</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>Watch the two sources of trouble here. Both A and B derive the single terminal <code>d</code>,
+        and two alternatives of S both start with <code>b</code>.</p>
+        <p>So with lookahead <code>d</code> the parser cannot tell <code>S &rarr; Aa</code> from
+        <code>S &rarr; Bc</code>, and with lookahead <code>b</code> it cannot tell <code>S &rarr; bAc</code>
+        from <code>S &rarr; bBa</code>. Two conflicts &rArr; <b>not LL(1)</b>.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q3" data-tags="ff ll">
+  <div class="qhead">
+    <div class="qnum">3</div>
+    <div class="qtitle">
+      <b>Find First and Follow Set from following grammar. Check grammar is LL(1) or not?</b>
+      <div class="qg">S → AaAb | BbBa
+A → €
+B → €</div>
+      <div class="qtags"><span class="qtag ff">FIRST &amp; FOLLOW</span><span class="qtag ll">LL(1) Table</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>A famous exam grammar. Both A and B derive only <span class="sym e">&epsilon;</span>, so FIRST(A) = FIRST(B) = { <span class="sym e">&epsilon;</span> } &mdash;
+        which looks like a clash but is not, because the deciding token comes from what <i>follows</i> them.</p>
+        <p>FIRST(AaAb) = { a } and FIRST(BbBa) = { b } are disjoint, so S can always choose.
+        A and B each have a single production, so their rows cannot conflict either.
+        The grammar <b>is LL(1)</b>.</p>
+        <div class="note tip"><span class="ni">&#128161;</span><div>This grammar is the textbook example of a
+        language that is <b>LL(1) but not SLR(1)</b> &mdash; worth remembering as a one-line exam bonus.</div></div></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q4" data-tags="lr">
+  <div class="qhead">
+    <div class="qnum">4</div>
+    <div class="qtitle">
+      <b>Apply rule to remove left recursion from following grammar.</b>
+      <div class="qg">S → A
+A → Ad | Ae | aB | aC
+B → bBC | f
+C → g</div>
+      <div class="qtags"><span class="qtag lr">Left Recursion</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>Straight <b>direct</b> left recursion on A, with two recursive alternatives and two
+        non-recursive ones. Split them:</p>
+        <div class="kv"><span>&alpha;&#8321; = d</span><span>&alpha;&#8322; = e</span>
+        <span>&beta;&#8321; = aB</span><span>&beta;&#8322; = aC</span></div>
+        <p style="margin-top:12px">Then apply <code>A &rarr; &beta;A&prime;</code> and
+        <code>A&prime; &rarr; &alpha;A&prime; | &epsilon;</code>. B and C are untouched &mdash; <code>B &rarr; bBC</code>
+        starts with a terminal, so it is not left recursive.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q5" data-tags="op">
+  <div class="qhead">
+    <div class="qnum">5</div>
+    <div class="qtitle">
+      <b>Define Operator precedence grammar. Convert following production rules of grammar into suitable Operator precedence grammar.</b>
+      <div class="qg">E → EAE | id
+A → - | *</div>
+      <div class="qtags"><span class="qtag op">Operator Precedence</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p><b>Definition first.</b> An operator grammar has (1) no &epsilon;-production and
+        (2) no two adjacent non-terminals on any right-hand side. An <b>operator precedence grammar</b> is an
+        operator grammar in which at most one of &#8918;, &#8784;, &#8919; holds between any pair of terminals.</p>
+        <p><code>E &rarr; E A E</code> breaks condition 2 twice over. Since every production of A is a single
+        terminal, substitute A back in and the adjacency disappears.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q6" data-tags="lr">
+  <div class="qhead">
+    <div class="qnum">6</div>
+    <div class="qtitle">
+      <b>Explain Left recursion in brief and remove left recursion from the following grammar.</b>
+      <div class="qg">S → A
+A → aB / Ad
+B → bBC / f
+C → g</div>
+      <div class="qtags"><span class="qtag lr">Left Recursion</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p><b>Brief explanation to write in the exam:</b> a grammar is left recursive when a non-terminal
+        A can derive a string beginning with A itself (<code>A &rArr;<sup>+</sup> A&alpha;</code>). A top-down
+        recursive-descent parser for such a rule calls itself without consuming input and loops forever, so left
+        recursion must be removed before predictive parsing.</p>
+        <p>Here only A is affected: &alpha; = d and &beta; = aB, giving one new non-terminal A&prime;.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q7" data-tags="lr">
+  <div class="qhead">
+    <div class="qnum">7</div>
+    <div class="qtitle">
+      <b>Define Left Recursion. Remove Left Recursion from the following grammar.</b>
+      <div class="qg">A → A x | A y | A B | c | d
+B → e</div>
+      <div class="qtags"><span class="qtag lr">Left Recursion</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>Three left-recursive alternatives this time, and note the third one is
+        <code>A &rarr; A B</code> where B is a <b>non-terminal</b> &mdash; that is still just an &alpha;,
+        it makes no difference to the rule.</p>
+        <div class="kv"><span>&alpha;&#8321; = x</span><span>&alpha;&#8322; = y</span><span>&alpha;&#8323; = B</span>
+        <span>&beta;&#8321; = c</span><span>&beta;&#8322; = d</span></div></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q8" data-tags="ll">
+  <div class="qhead">
+    <div class="qnum">8</div>
+    <div class="qtitle">
+      <b>Construct LL(1) Parsing table for the following grammar.</b>
+      <div class="qg">S → aAC | Bb
+A → eD
+B → f | g
+C → h | i
+D → bE | ε
+E → eD | dD</div>
+      <div class="qtags"><span class="qtag ll">LL(1) Table</span><span class="qtag" style="background:var(--bg-2);color:var(--ink-2);border-color:var(--line-2)">03 marks</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>Six non-terminals, one of them nullable. The only subtlety is <b>D</b>: because
+        <code>D &rarr; <span class="sym e">&epsilon;</span></code>, the production <code>D &rarr; &epsilon;</code> is entered under every terminal
+        in FOLLOW(D) = { h, i } &mdash; not under FIRST.</p>
+        <p>Every cell ends up with at most one production, so the grammar <b>is LL(1)</b>.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q9" data-tags="ll">
+  <div class="qhead">
+    <div class="qnum">9</div>
+    <div class="qtitle">
+      <b>Develop an LL(1) parser table and parse the following string using the parsing table: id * ( id + id )</b>
+      <div class="qg">E → TA
+A → +TA | ε
+T → VB
+B → *VB | ε
+V → id | (E)</div>
+      <div class="qtags"><span class="qtag ll">LL(1) Table</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>This is the fully worked expression grammar &mdash; already left-recursion-free and left
+        factored, which is exactly why it is LL(1).</p>
+        <p>The animation below is the heart of this question: press play and watch the stack shrink and grow while
+        the parse tree builds top-down and the active table cell lights up. The complete move table is printed
+        underneath, which is what you would copy into the answer sheet.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q10" data-tags="am lr">
+  <div class="qhead">
+    <div class="qnum">10</div>
+    <div class="qtitle">
+      <b>What is ambiguity in grammar? Eliminate left recursion from the following grammar.</b>
+      <div class="qg">A → Aa | b</div>
+      <div class="qtags"><span class="qtag am">Ambiguity</span><span class="qtag lr">Left Recursion</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p><b>Ambiguity &mdash; definition to write:</b> a context-free grammar is ambiguous if there is at
+        least one string in its language having two or more distinct parse trees (equivalently, two distinct
+        leftmost derivations). Because the parse tree determines meaning, an ambiguous grammar leaves the
+        compiler with no single interpretation &mdash; e.g. <code>E &rarr; E + E | E * E | id</code> parses
+        <code>id + id * id</code> in two different ways. Ambiguity of an arbitrary CFG is undecidable in general;
+        in practice we rewrite the grammar or supply precedence and associativity rules.</p>
+        <p><b>The elimination part</b> is the simplest possible case: &alpha; = a, &beta; = b.</p></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+<div class="qcard" id="q11" data-tags="ll am">
+  <div class="qhead">
+    <div class="qnum">11</div>
+    <div class="qtitle">
+      <b>Construct LL(1) parsing table for following grammar.</b>
+      <div class="qg">S → iCtSeS | iCtS | a
+C → b</div>
+      <div class="qtags"><span class="qtag ll">LL(1) Table</span><span class="qtag am">Ambiguity</span></div>
+    </div>
+    <div class="qchev">&#9660;</div>
+  </div>
+  <div class="qbody">
+    <div class="note tip"><span class="ni">&#128221;</span><div><p>The <b>dangling-else</b> grammar (<code>i</code> = if, <code>C</code> = condition,
+        <code>t</code> = then, <code>e</code> = else). Two alternatives of S share the prefix
+        <code>iCtS</code>, so M[S, i] receives both &mdash; the grammar is <b>not LL(1)</b>.</p>
+        <p>Left factoring gives <code>S &rarr; a | iCtSS&prime;</code> and
+        <code>S&prime; &rarr; eS | &epsilon;</code>. But <code>e</code> is in FIRST(eS) <i>and</i> in
+        FOLLOW(S&prime;), so M[S&prime;, e] <b>still</b> holds two entries.</p>
+        <div class="note bad"><span class="ni">&#9888;</span><div><b>The point of the question:</b> this grammar is
+        genuinely <b>ambiguous</b> &mdash; "which if does this else belong to?" &mdash; and no amount of factoring
+        removes ambiguity. Real compilers resolve it by a rule: an <code>else</code> matches the nearest unmatched
+        <code>if</code>.</div></div></div></div>
+    <div class="sol"></div>
+  </div>
+</div>
+  </div>
+</section><section id="own">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">8.2</div>
+      <div><h2>Your turn</h2><p class="sub">Same engine, your grammar.</p></div>
+    </div>
+    
+<div class="card">
+  <h3>&#9998; Run your own question</h3>
+  <p class="muted">Paste any grammar from your paper, choose what to do with it, and get the same full working
+  &mdash; sets, table, steps and animation.</p>
+  <div class="split-wide">
+    <div>
+      <label class="lb">Grammar</label>
+      <textarea id="ugin" spellcheck="false" style="min-height:140px">S -> aAC | Bb
+A -> eD
+B -> f | g
+C -> h | i
+D -> bE | &#949;
+E -> eD | dD</textarea>
+      <label class="lb" style="margin-top:16px">What should I solve?</label>
+      <select id="umode">
+        <option value="all">Everything (recommended)</option>
+        <option value="lr">Remove left recursion</option>
+        <option value="lf">Left factor</option>
+        <option value="ff">FIRST &amp; FOLLOW + LL(1) check</option>
+        <option value="ll1">LL(1) table + parse a string</option>
+        <option value="op">Operator grammar check</option>
+      </select>
+      <label class="lb" style="margin-top:16px">Input string to parse <span class="muted" style="text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="uwin" placeholder="a e b e b h">
+      <div class="btn-row">
+        <button class="btn" id="usolve">Solve my question</button>
+        <button class="btn ghost" id="uclear">Clear</button>
+      </div>
+    </div>
+    <div><div id="umsg"></div><div id="uout"><p class="muted center" style="padding:50px 20px">Your worked solution will appear here.</p></div></div>
+  </div>
+</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div><b>Parse Lab</b> &mdash; interactive compiler-design playground for syntax analysis.<br>
+    <span class="muted">Theory &rarr; animated tools &rarr; solved university questions. Works fully offline.</span></div>
+    <div><a href="index.html">Home</a> &nbsp;&middot;&nbsp; <a href="theory.html">Theory</a> &nbsp;&middot;&nbsp; <a href="questions.html">Questions</a></div>
+  </div>
+</footer>
+
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+var QDATA = [{"id": "q1", "grammar": "S -> Aa | b\nA -> Ac | Sd | \u03b5", "type": "lr"}, {"id": "q2", "grammar": "S -> Aa | bAc | Bc | bBa\nA -> d\nB -> d", "type": "ff"}, {"id": "q3", "grammar": "S -> AaAb | BbBa\nA -> \u03b5\nB -> \u03b5", "type": "ff"}, {"id": "q4", "grammar": "S -> A\nA -> Ad | Ae | aB | aC\nB -> bBC | f\nC -> g", "type": "lr"}, {"id": "q5", "grammar": "E -> EAE | id\nA -> - | *", "type": "op"}, {"id": "q6", "grammar": "S -> A\nA -> aB / Ad\nB -> bBC / f\nC -> g", "type": "lr"}, {"id": "q7", "grammar": "A -> A x | A y | A B | c | d\nB -> e", "type": "lr"}, {"id": "q8", "grammar": "S -> aAC | Bb\nA -> eD\nB -> f | g\nC -> h | i\nD -> bE | \u03b5\nE -> eD | dD", "parse": "a e b e b h", "type": "ll1"}, {"id": "q9", "grammar": "E -> TA\nA -> +TA | \u03b5\nT -> VB\nB -> *VB | \u03b5\nV -> id | (E)", "parse": "id * ( id + id )", "type": "ll1"}, {"id": "q10", "grammar": "A -> Aa | b", "type": "lr"}, {"id": "q11", "grammar": "S -> iCtSeS | iCtS | a\nC -> b", "parse": "i b t a e a", "type": "ll1"}];
+</script>
+<script>
+(function(){
+  var $=UI.$, $$=UI.$$;
+
+  /* ---------- solution renderers ---------- */
+  function solveLR(g){
+    var chk=PL.hasLeftRecursion(g), res=PL.removeLeftRecursion(g), h='';
+    h+='<h4>Step 1 &mdash; Identify the left recursion</h4>';
+    if(!chk.any) h+='<div class="banner ok"><span class="bi">&#10003;</span><div>No left recursion present.</div></div>';
+    else{
+      var b=[];
+      if(chk.direct.length) b.push('<b>Direct</b>: '+[...new Set(chk.direct.map(function(p){return PL.prodStr(p)}))].map(UI.esc).join(' &nbsp;&middot;&nbsp; '));
+      if(chk.indirect.length) b.push('<b>Indirect</b> on: '+chk.indirect.join(', '));
+      h+='<div class="banner bad"><span class="bi">&#10007;</span><div>Left recursion found<small>'+b.join('<br>')+'</small></div></div>';
+    }
+    h+='<h4>Step 2 &mdash; Apply the rule</h4><div class="steps">';
+    var n=0;
+    res.log.forEach(function(l){
+      if(l.type==='ok'||l.type==='head')return; n++;
+      h+='<div class="step '+(l.type==='sub'?'sub':'elim')+'"><span class="n">'+n+'</span><div class="bd"><b>'+UI.esc(l.text)+'</b>';
+      if(l.type==='elim'){
+        h+='<div class="kv" style="margin:8px 0">';
+        l.alpha.forEach(function(a,i){h+='<span>&alpha;'+(i+1)+' = '+UI.esc(a)+'</span>';});
+        l.beta.forEach(function(x,i){h+='<span>&beta;'+(i+1)+' = '+UI.esc(x)+'</span>';});
+        h+='</div><span class="muted">A &rarr; &beta;A&prime; &nbsp;and&nbsp; A&prime; &rarr; &alpha;A&prime; | &epsilon; &nbsp; with A = '+UI.esc(l.nt)+', A&prime; = '+UI.esc(l.prime)+'</span>';
+      }
+      if(l.detail) h+='<pre>'+UI.esc(l.detail)+'</pre>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+    h+='<div class="ans"><div class="lbl">&#10004; Final answer</div><div class="gbox out" style="background:transparent;border:none;padding:0">'+UI.grammarHTML(res.grammar)+'</div></div>';
+    return h;
+  }
+
+  function solveFF(g){
+    var t=PL.ll1Table(g), h='';
+    h+='<h4>Step 1 &mdash; FIRST and FOLLOW sets</h4><div id="ffs_'+g.start+'"></div>';
+    h+='<h4>Step 2 &mdash; Build the LL(1) table</h4><div class="tblhost"></div>';
+    h+='<h4>Step 3 &mdash; Verdict</h4>'+UI.ll1Verdict(t);
+    h+='<div class="ans"><div class="lbl">&#10004; Final answer</div>';
+    g.nonterminals.forEach(function(n){
+      h+='<div class="setrow"><span class="setname">FIRST('+UI.esc(n)+')</span>'+UI.setHTML(g,t.first.get(n),'first')+
+         '<span class="setname" style="margin-left:14px">FOLLOW('+UI.esc(n)+')</span>'+UI.setHTML(g,t.follow.get(n),'follow')+'</div>';
+    });
+    h+='<p style="margin:14px 0 0"><b>'+(t.isLL1
+      ?'The grammar IS LL(1)</b> &mdash; no cell of the parsing table contains more than one production.'
+      :'The grammar is NOT LL(1)</b> &mdash; '+t.conflicts.length+' cell(s) contain multiple productions: '+
+        t.conflicts.map(function(c){return 'M['+UI.esc(c.nt)+','+UI.esc(c.term)+']'}).join(', ')+'.')+'</p></div>';
+    return {html:h, after:function(root){
+      UI.renderSets(g,t.first,t.follow,$('[id^=ffs_]',root));
+      UI.renderLL1Table(g,t,$('.tblhost',root));
+    }};
+  }
+
+  function solveLL1(g,word){
+    var t=PL.ll1Table(g), h='';
+    h+='<h4>Step 1 &mdash; FIRST and FOLLOW</h4><div class="ffhost"></div>';
+    h+='<h4>Step 2 &mdash; Predictive parsing table</h4><div class="verhost"></div><div class="tblhost"></div>';
+    if(word && t.isLL1){
+      h+='<h4>Step 3 &mdash; Parse <code>'+UI.esc(word)+'</code></h4>';
+      h+='<div class="banhost"></div>';
+      h+='<div class="player phost"></div><div class="action init ahost"></div>';
+      h+='<label class="lb" style="margin-top:16px">Input tape</label><div class="tape thost"></div>';
+      h+='<div class="sim" style="margin-top:16px"><div class="stack-box shost"></div>'+
+         '<div><label class="lb">Parse tree</label><div class="tree-wrap trhost"></div></div></div>';
+      h+='<h4>Complete move table</h4><div class="movehost"></div>';
+      h+='<h4>Leftmost derivation</h4><div class="deriv dvhost"></div>';
+    } else if(word){
+      h+='<h4>Step 3 &mdash; Why we cannot build a deterministic parse</h4>'+
+         '<div class="note bad"><span class="ni">&#9888;</span><div>The table has conflicts, so a predictive parser '+
+         'cannot be driven by it. Fix the grammar first (left factoring / removing ambiguity), then parse.</div></div>';
+      var lf=PL.leftFactor(g);
+      h+='<h4>Left-factored version</h4><div class="gbox out">'+UI.grammarHTML(lf.grammar)+'</div>';
+      var t2=PL.ll1Table(lf.grammar);
+      h+=(t2.isLL1?'<div class="note good" style="margin-top:14px"><span class="ni">&#9989;</span><div>After factoring the grammar becomes LL(1).</div></div>'
+        :'<div class="note bad" style="margin-top:14px"><span class="ni">&#9888;</span><div><b>Still not LL(1)</b> &mdash; '+
+          t2.conflicts.map(function(c){return 'M['+UI.esc(c.nt)+','+UI.esc(c.term)+'] holds '+c.prods.length+' productions'}).join('; ')+
+          '. The grammar is ambiguous, and factoring cannot remove ambiguity.</div></div>');
+      h+='<h4>Factored table</h4><div class="tbl2host"></div>';
+    }
+    return {html:h, after:function(root){
+      UI.renderSets(g,t.first,t.follow,$('.ffhost',root));
+      $('.verhost',root).innerHTML=UI.ll1Verdict(t);
+      UI.renderLL1Table(g,t,$('.tblhost',root));
+      if(word && t.isLL1){
+        var toks=PL.tokenize(word);
+        var sim=UI.mountLL1Sim({g:g,tbl:t,tokens:toks,hosts:{
+          stack:$('.shost',root),tape:$('.thost',root),action:$('.ahost',root),
+          tree:$('.trhost',root),table:$('.tblhost',root)}});
+        UI.makePlayer($('.phost',root),sim.total,sim.step,{speed:5});
+        var r=sim.res;
+        $('.banhost',root).innerHTML = r.ok
+          ? '<div class="banner ok"><span class="bi">&#10003;</span><div>String ACCEPTED<small>'+UI.esc(toks.join(' '))+' &mdash; '+r.steps.length+' steps.</small></div></div>'
+          : '<div class="banner bad"><span class="bi">&#10007;</span><div>String REJECTED<small>'+UI.esc(r.error||'')+'</small></div></div>';
+        var m='<div class="tw"><table><thead><tr><th style="width:44px">#</th><th>Stack</th><th>Input</th><th>Action</th></tr></thead><tbody>';
+        r.steps.forEach(function(s,i){
+          var col=s.cls==='accept'?'var(--ok)':s.cls==='error'?'var(--bad)':s.cls==='match'?'var(--term)':s.cls==='expand'?'var(--nt)':'var(--ink-3)';
+          m+='<tr><td class="mono">'+(i+1)+'</td><td class="mono">'+UI.esc(s.stack.join(' '))+'</td><td class="mono">'+
+             UI.esc(s.input.join(' '))+'</td><td style="color:'+col+';font-weight:600">'+UI.esc(s.action)+'</td></tr>';
+        });
+        m+='</tbody></table></div>';
+        $('.movehost',root).innerHTML=m;
+        if(r.ok) UI.renderDeriv(g,r.tree,$('.dvhost',root),true);
+      } else if(word){
+        var lf=PL.leftFactor(g), t2=PL.ll1Table(lf.grammar);
+        UI.renderLL1Table(lf.grammar,t2,$('.tbl2host',root));
+      }
+    }};
+  }
+
+  function solveOP(g){
+    var c=PL.isOperatorGrammar(g), conv=PL.toOperatorGrammar(g), h='';
+    h+='<h4>Step 1 &mdash; Check the two operator-grammar conditions</h4>';
+    if(c.ok) h+='<div class="banner ok"><span class="bi">&#10003;</span><div>Already an operator grammar.</div></div>';
+    else{
+      h+='<div class="banner bad"><span class="bi">&#10007;</span><div>Not an operator grammar<small>'+c.problems.length+' violation(s).</small></div></div><div class="steps">';
+      c.problems.forEach(function(p,i){
+        h+='<div class="step"><span class="n">'+(i+1)+'</span><div class="bd"><b>'+UI.esc(p.prod)+'</b><span class="muted">'+UI.esc(p.why)+'</span></div></div>';
+      });
+      h+='</div>';
+    }
+    h+='<h4>Step 2 &mdash; Convert</h4><div class="steps">';
+    conv.log.forEach(function(l,i){
+      h+='<div class="step ok"><span class="n">'+(i+1)+'</span><div class="bd"><b>Substitute '+UI.esc(l.nt)+' &rarr; '+l.with.map(UI.esc).join(' | ')+' into the right-hand sides</b><span class="muted">'+UI.esc(l.text)+'</span></div></div>';
+    });
+    h+='</div>';
+    h+='<div class="ans"><div class="lbl">&#10004; Operator precedence grammar</div><div class="gbox out" style="background:transparent;border:none;padding:0">'+UI.grammarHTML(conv.grammar)+'</div></div>';
+
+    /* precedence table for the resulting operators */
+    var ops=conv.grammar.terminals.filter(function(x){return ['+','-','*','/','^'].indexOf(x)>=0;});
+    var atoms=conv.grammar.terminals.filter(function(x){return ops.indexOf(x)<0 && x!=='('&&x!==')';});
+    if(ops.length&&atoms.length){
+      var lv=[]; var low=ops.filter(function(o){return o==='+'||o==='-';});
+      var high=ops.filter(function(o){return o==='*'||o==='/';});
+      var hi2=ops.filter(function(o){return o==='^';});
+      if(low.length)lv.push({ops:low,assoc:'left'});
+      if(high.length)lv.push({ops:high,assoc:'left'});
+      if(hi2.length)lv.push({ops:hi2,assoc:'right'});
+      if(lv.length){
+        var pt=PL.precedenceTable(lv,atoms);
+        h+='<h4>Step 3 &mdash; Precedence relation table</h4>';
+        h+='<p class="muted">Using the usual precedence: * higher than &minus;, both left associative.</p>';
+        h+='<div class="tw"><table class="ptable"><thead><tr><th class="rowh">stack \\ input</th>';
+        pt.symbols.forEach(function(s){h+='<th class="colh">'+UI.esc(s)+'</th>';});
+        h+='</tr></thead><tbody>';
+        pt.symbols.forEach(function(a){
+          h+='<tr><td class="rowh">'+UI.esc(a)+'</td>';
+          pt.symbols.forEach(function(b){
+            var v=pt.table.get(a).get(b);
+            if(v==='accept')h+='<td class="filled" style="background:var(--ok-bg);color:var(--ok)">acc</td>';
+            else if(!v)h+='<td class="empty">&ndash;</td>';
+            else h+='<td class="filled" style="font-size:1.2rem">'+v+'</td>';
+          });
+          h+='</tr>';
+        });
+        h+='</tbody></table></div>';
+      }
+    }
+    return h;
+  }
+
+  /* ---------- mount ---------- */
+  function renderSolution(q, host){
+    var g=PL.parseGrammar(q.grammar).grammar;
+    var r;
+    if(q.type==='lr') r=solveLR(g);
+    else if(q.type==='ff') r=solveFF(g);
+    else if(q.type==='ll1') r=solveLL1(g,q.parse||'');
+    else if(q.type==='op') r=solveOP(g);
+    if(typeof r==='string'){ host.innerHTML=r; }
+    else { host.innerHTML=r.html; r.after(host); }
+  }
+
+  var built={};
+  $$('.qcard').forEach(function(card){
+    var q=QDATA.filter(function(x){return x.id===card.id})[0];
+    $('.qhead',card).onclick=function(){
+      var open=card.classList.toggle('open');
+      if(open && !built[q.id]){ built[q.id]=1; renderSolution(q,$('.sol',card)); }
+    };
+  });
+
+  /* filters */
+  $$('.chip[data-f]').forEach(function(c){
+    c.onclick=function(){
+      $$('.chip[data-f]').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on');
+      var f=c.dataset.f;
+      $$('.qcard').forEach(function(card){
+        card.style.display = (f==='all'||card.dataset.tags.split(' ').indexOf(f)>=0)?'':'none';
+      });
+    };
+  });
+  $('#openAll').onclick=function(){
+    $$('.qcard').forEach(function(card){
+      if(card.style.display==='none')return;
+      if(!card.classList.contains('open')) $('.qhead',card).click();
+    });
+  };
+  $('#closeAll').onclick=function(){ $$('.qcard.open').forEach(function(c){c.classList.remove('open')}); };
+
+  /* open the one in the URL hash */
+  if(location.hash){ var t=document.querySelector(location.hash); if(t&&t.classList.contains('qcard')) $('.qhead',t).click(); }
+
+  /* ---------- run your own ---------- */
+  $('#uclear').onclick=function(){$('#ugin').value='';$('#uout').innerHTML='';$('#umsg').innerHTML='';};
+  $('#usolve').onclick=function(){
+    var g=UI.readGrammar($('#ugin').value,$('#umsg')); if(!g)return;
+    var mode=$('#umode').value, word=$('#uwin').value.trim();
+    var out=$('#uout'); out.innerHTML='';
+    var blocks=[];
+
+    function box(title,inner){ return '<div class="card" style="box-shadow:none;margin-bottom:18px"><h3>'+title+'</h3>'+inner+'</div>'; }
+
+    if(mode==='all'||mode==='lr'){
+      var chk=PL.hasLeftRecursion(g);
+      blocks.push({html:box('Left recursion', solveLR(g))});
+    }
+    if(mode==='all'||mode==='lf'){
+      var lf=PL.leftFactor(g);
+      var did=lf.log.some(function(l){return l.type==='factor'});
+      var h=did?'':'<div class="banner ok"><span class="bi">&#10003;</span><div>Already left factored.</div></div>';
+      if(did){
+        h+='<div class="steps">';
+        lf.log.filter(function(l){return l.type==='factor'}).forEach(function(l,i){
+          h+='<div class="step factor"><span class="n">'+(i+1)+'</span><div class="bd"><b>'+UI.esc(l.text)+'</b><pre>'+UI.esc(l.detail)+'</pre></div></div>';
+        });
+        h+='</div><div class="ans"><div class="lbl">&#10004; Factored grammar</div><div class="gbox out" style="background:transparent;border:none;padding:0">'+UI.grammarHTML(lf.grammar)+'</div></div>';
+      }
+      blocks.push({html:box('Left factoring',h)});
+    }
+    if(mode==='all'||mode==='ff'){
+      var r=solveFF(g); blocks.push({html:box('FIRST, FOLLOW and the LL(1) test',r.html), after:r.after});
+    }
+    if(mode==='ll1'||(mode==='all'&&word)){
+      var r2=solveLL1(g,word||''); blocks.push({html:box('LL(1) table'+(word?' and parse of "'+UI.esc(word)+'"':''),r2.html), after:r2.after});
+    }
+    if(mode==='op'||mode==='all'){
+      blocks.push({html:box('Operator grammar', solveOP(g))});
+    }
+    out.innerHTML=blocks.map(function(b){return b.html}).join('');
+    /* run after-hooks against the matching card */
+    var cards=UI.$$('#uout > .card');
+    var k=0;
+    blocks.forEach(function(b,i){ if(b.after) b.after(cards[i]); });
+  };
+})();
+</script>
+</body>
+</html>
