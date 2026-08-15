@@ -363,10 +363,48 @@
       '<div style="animation-delay:' + i * 45 + 'ms">' + (i ? '<span class="ar">⇒</span>' : '<span class="ar" style="opacity:.35">&nbsp;&nbsp;</span>') +
       s.split(' ').map(x => chip(g, x)).join(' ') + '</div>').join('');
   }
+  /* ---------- Back to Virtual Laboratory ---------- */
+  function initBackToLab() {
+    const button = document.getElementById('backToLab');
+    if (!button) return;
+
+    // Read the return URL sent by the Virtual Laboratory.
+    const params = new URLSearchParams(window.location.search);
+    const returnUrl = params.get('return');
+
+    // Save the latest practical URL.
+    if (returnUrl) {
+      try {
+        sessionStorage.setItem('pl-return-url', returnUrl);
+        localStorage.setItem('pl-return-url', returnUrl);
+      } catch (e) {
+        console.warn('Could not save Virtual Lab return URL:', e);
+      }
+    }
+
+    // Get the most recently saved practical URL.
+    let savedUrl = null;
+
+    try {
+      savedUrl =
+        sessionStorage.getItem('pl-return-url') ||
+        localStorage.getItem('pl-return-url');
+    } catch (e) {
+      console.warn('Could not read Virtual Lab return URL:', e);
+    }
+
+    // If there is no return URL, keep the button hidden.
+    if (!savedUrl) return;
+
+    // Send the student back to the exact practical they came from.
+    button.href = savedUrl;
+    button.style.display = 'inline-flex';
+  }
 
   /* ============================================================
      Global chrome: theme, projector, nav, mobile menu
      ============================================================ */
+   
   function chrome() {
     const html = document.documentElement;
     const th = localStorage.getItem('pl-theme');
@@ -406,5 +444,8 @@
     renderSets, renderLL1Table, ll1Verdict, drawTree, renderStack, renderTape,
     makePlayer, mountLL1Sim, renderDeriv, chrome, symCls
   };
-  document.addEventListener('DOMContentLoaded', chrome);
+   document.addEventListener('DOMContentLoaded', () => {
+    chrome();
+    initBackToLab();
+  });
 })(typeof window !== 'undefined' ? window : globalThis);
